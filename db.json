@@ -1,0 +1,81 @@
+[
+  {
+    "name": "Task 1",
+    "date": "2023-03-04",
+    "repeats": "Weekly",
+    "description": "This is a test",
+    "completed": true
+  },
+  {
+    "name": "Task 2",
+    "date": "2023-03-06",
+    "repeats": "Never",
+    "description": "This is a test",
+    "completed": true
+  },
+  {
+    "name": "Test task 2",
+    "date": "2023-03-06",
+    "repeats": "Daily",
+    "description": "This is a test task creation",
+    "completed": true
+  },
+  {
+    "name": "Test task 3",
+    "date": "2023-03-07",
+    "repeats": "Never",
+    "description": "This is another test",
+    "completed": false
+  },
+  {
+    "name": "Test task 2",
+    "date": "2023-03-07",
+    "repeats": "Daily",
+    "description": "This is a test task creation",
+    "completed": true
+  },
+  {
+    "name": "Test Weird",
+    "date": "2023-03-08",
+    "repeats": {
+      "DaysOfWeek": [
+        "Wednesday",
+        "Friday"
+      ]
+    },
+    "description": "Weirdddddddd",
+    "completed": true
+  },
+  {
+    "name": "Test task 2",
+    "date": "2023-03-08",
+    "repeats": "Daily",
+    "description": "This is a test task creation",
+    "completed": false
+  },
+  {
+    "name": "Vineet task",
+    "date": "2023-03-08",
+    "repeats": {
+      "DaysOfWeek": [
+        "Monday",
+        "Wednesday",
+        "Friday"
+      ]
+    },
+    "description": "This is for vineet",
+    "completed": false
+  },
+  {
+    "name": "Test Weird",
+    "date": "2023-03-11",
+    "repeats": {
+      "DaysOfWeek": [
+        "Wednesday",
+        "Friday"
+      ]
+    },
+    "description": "Weirdddddddd",
+    "completed": false
+  }
+]
