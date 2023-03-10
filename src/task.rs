@@ -3,7 +3,6 @@ use chrono::{Datelike, Local, NaiveDate};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-
 use crate::{repeat::Repeat, utils};
 
 pub fn serialize_dt<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>

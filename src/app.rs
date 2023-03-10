@@ -26,9 +26,13 @@ impl App {
         self.save_state();
     }
 
-    pub fn toggle_completed_task(&mut self, index: usize) -> Option<Task> {
+    pub fn toggle_completed_task(&mut self, index: usize) {
         let new_task = self.tasks[index].toggle_completed();
+        if let Some(new_task) = new_task {
+            self.add_task(new_task);
+            self.delete_task(index);
+        }
+
         self.save_state();
-        new_task
     }
 }

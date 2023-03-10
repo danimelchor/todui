@@ -35,14 +35,11 @@ impl AllTasksPage {
             return;
         }
 
-        let new_task = self
+        self
             .app
             .borrow_mut()
             .toggle_completed_task(self.current_idx.unwrap());
 
-        if let Some(new_task) = new_task {
-            self.app.borrow_mut().add_task(new_task);
-        }
 
         if !self.show_hidden {
             self.move_closest();
