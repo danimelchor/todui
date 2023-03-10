@@ -1,20 +1,25 @@
-use crate::app::{all_tasks::AllTasksPage, new_task::NewTaskPage, App, AppPage};
+use crate::app::App;
 use anyhow::Result;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::io::{self, stdout};
+use std::cell::RefCell;
+use std::io::stdout;
+use std::rc::Rc;
 use tui::{
     backend::{Backend, CrosstermBackend},
-    Terminal,
+    Frame, Terminal,
 };
 
 mod all_tasks;
-mod new_task;
+use all_tasks::AllTasksPage;
 
-pub fn start_ui(app: &mut App) -> Result<()> {
+mod new_task;
+use new_task::NewTaskPage;
+
+pub fn start_ui(app: App) -> Result<()> {
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     enable_raw_mode()?;
@@ -23,7 +28,6 @@ pub fn start_ui(app: &mut App) -> Result<()> {
     terminal.hide_cursor()?;
 
     run_app(&mut terminal, app)?;
-    app.save_state();
 
     // restore terminal
     disable_raw_mode()?;
@@ -37,21 +41,35 @@ pub fn start_ui(app: &mut App) -> Result<()> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
-    loop {
-        let quit = match app.current_page {
-            AppPage::AllTasks => {
-                let mut page = AllTasksPage::new(app);
-                all_tasks::render(terminal, app)?
-            }
-            AppPage::NewTask => {
-                let mut page = NewTaskPage::new(app);
-                new_task::render(terminal, app)?
-            }
-        };
+#[derive(Eq, PartialEq)]
+pub enum UIPage {
+    Quit,
+    SamePage,
+    AllTasks,
+    NewTask,
+}
 
-        if quit {
-            break;
+pub trait Page<B: Backend> {
+    fn render(&mut self, terminal: &mut Terminal<B>) -> Result<UIPage>;
+    fn ui(&self, f: &mut Frame<B>);
+}
+
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
+    let app = Rc::new(RefCell::new(app));
+    let mut curr_page: Box<dyn Page<B>> = Box::new(AllTasksPage::new(Rc::clone(&app)));
+
+    loop {
+        let new_page_type = curr_page.render(terminal)?;
+
+        match new_page_type {
+            UIPage::Quit => break,
+            UIPage::AllTasks => {
+                curr_page = Box::new(AllTasksPage::new(Rc::clone(&app)));
+            }
+            UIPage::NewTask => {
+                curr_page = Box::new(NewTaskPage::new(Rc::clone(&app)));
+            }
+            _ => {}
         }
     }
 
