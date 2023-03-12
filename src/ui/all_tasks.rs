@@ -1,3 +1,4 @@
+use super::utils::wrap_text;
 use crate::app::App;
 use crate::task::Task;
 use crate::ui::{Page, UIPage};
@@ -5,6 +6,7 @@ use crate::utils::date_to_str;
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode};
 use itertools::Itertools;
+use tui::widgets::BorderType;
 use std::cell::RefCell;
 use std::rc::Rc;
 use tui::{
@@ -35,11 +37,9 @@ impl AllTasksPage {
             return;
         }
 
-        self
-            .app
+        self.app
             .borrow_mut()
             .toggle_completed_task(self.current_idx.unwrap());
-
 
         if !self.show_hidden {
             self.move_closest();
@@ -173,6 +173,11 @@ where
                 KeyCode::Char('h') => self.toggle_hidden(),
                 KeyCode::Char('d') => self.delete_selected(),
                 KeyCode::Char('n') => return Ok(UIPage::NewTask),
+                KeyCode::Char('e') => {
+                    if let Some(idx) = self.current_idx {
+                        return Ok(UIPage::EditTask(idx));
+                    }
+                }
                 _ => {}
             }
         }
@@ -186,39 +191,54 @@ where
             .margin(5)
             .split(f.size());
 
-        let selected_style = Style::default().fg(Color::White).bg(Color::Black);
-        let completed_style = Style::default().fg(Color::DarkGray);
-        let header_cells = ["Status", "Name", "Date", "Repeats every", "Description"]
+        let header_cells = ["Done", "Name", "Date", "Repeats every", "Description"]
             .iter()
             .map(|h| {
                 Cell::from(*h).style(
                     Style::default()
-                        .fg(Color::White)
+                        .fg(Color::LightBlue)
                         .add_modifier(Modifier::BOLD),
                 )
             });
         let header = Row::new(header_cells).height(1).bottom_margin(1);
 
         // Rows
+        let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+        let completed_style = Style::default().fg(Color::DarkGray);
+        let default_style = Style::default().fg(Color::White);
+
         let mut rows: Vec<Row> = vec![];
         let mut current_idx = 0;
         for group in self.groups() {
             for (item_idx, item) in group.iter().enumerate() {
                 let x = match item.completed {
-                    true => "[x]",
-                    false => "[ ]",
+                    true => "󰄴",
+                    false => "󰝦",
                 };
                 let cells = vec![
                     Cell::from(x),
-                    Cell::from(item.name.clone()),
+                    Cell::from(wrap_text(item.name.clone(), 25)),
                     Cell::from(date_to_str(&item.date)),
                     Cell::from(item.repeats.to_string()),
-                    Cell::from(item.description.clone().unwrap_or("".to_string())),
+                    Cell::from(wrap_text(
+                        item.description.clone().unwrap_or("".to_string()),
+                        35,
+                    )),
                 ];
+
+                let height = vec![
+                    item.name.len() / 25,
+                    item.description.clone().unwrap_or("".to_string()).len() / 35,
+                ]
+                .iter()
+                .max()
+                .unwrap()
+                .clone()
+                    + 1;
 
                 let style = match item.completed {
                     true => completed_style,
-                    false => Style::default(),
+                    false => default_style,
                 };
 
                 let style = match self.current_idx {
@@ -227,7 +247,7 @@ where
                 };
                 current_idx += 1;
 
-                let mut new_row = Row::new(cells).height(1).style(style);
+                let mut new_row = Row::new(cells).height(height as u16).style(style);
 
                 if item_idx == group.len() - 1 {
                     new_row = new_row.bottom_margin(1);
@@ -241,16 +261,15 @@ where
         }
         let t = Table::new(rows)
             .header(header)
-            .block(Block::default().borders(Borders::ALL).title("Todos"))
-            .highlight_style(selected_style)
-            .highlight_symbol("> ")
+            .block(Block::default().borders(Borders::ALL).border_type(BorderType::Rounded).title("Todos"))
             .widths(&[
-                Constraint::Percentage(10),
-                Constraint::Percentage(20),
-                Constraint::Percentage(20),
-                Constraint::Percentage(20),
-                Constraint::Percentage(30),
-            ]);
+                Constraint::Length(4),
+                Constraint::Length(25),
+                Constraint::Length(10),
+                Constraint::Min(13),
+                Constraint::Length(35),
+            ])
+            .column_spacing(2);
         f.render_widget(t, rects[0]);
     }
 }

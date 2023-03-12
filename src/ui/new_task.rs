@@ -57,6 +57,7 @@ pub enum NewTaskInputMode {
 pub struct NewTaskPage {
     pub task_form: TaskForm,
     pub input_mode: NewTaskInputMode,
+    pub editing_task: Option<usize>,
     pub current_idx: usize,
     pub num_fields: usize,
     pub error: Option<String>,
@@ -71,6 +72,27 @@ impl NewTaskPage {
             current_idx: 0,
             error: None,
             num_fields: 4,
+            editing_task: None,
+            app,
+        }
+    }
+
+    pub fn new_from_task(app: Rc<RefCell<App>>, task_id: usize) -> NewTaskPage {
+        let task = app.borrow().get_task(task_id).unwrap().clone();
+        let mut task_form = TaskForm::new();
+
+        task_form.name = task.name.to_string();
+        task_form.date = task.date.to_string();
+        task_form.repeats = task.repeats.to_string();
+        task_form.description = task.description.unwrap_or("".to_string());
+
+        NewTaskPage {
+            task_form,
+            input_mode: NewTaskInputMode::Normal,
+            current_idx: 0,
+            error: None,
+            num_fields: 4,
+            editing_task: Some(task_id),
             app,
         }
     }
@@ -156,6 +178,9 @@ where
                     KeyCode::Enter => {
                         match self.task_form.submit() {
                             Ok(new_taks) => {
+                                if let Some(task_id) = self.editing_task {
+                                    self.app.borrow_mut().delete_task(task_id);
+                                }
                                 self.app.borrow_mut().add_task(new_taks);
                                 return Ok(UIPage::AllTasks);
                             }
@@ -198,7 +223,7 @@ where
 
         // Keybinds description paragraph
         let keybinds = Paragraph::new(
-        "Press 'i' to enter input mode, 'q' to quit, 'j' and 'k' to move up and down, 'Enter' to submit, 'Esc' to exit input mode, and 'b' to go back to the main screen"
+        "Press 'i' to enter input mode, 'q' to quit, 'j' and 'k' to move up and down, 'Enter' to save, 'Esc' to exit input mode, and 'b' to go back to the main screen"
     ).alignment(Alignment::Center)
         .wrap(Wrap { trim: true });
         f.render_widget(keybinds, chunks[0]);

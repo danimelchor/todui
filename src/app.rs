@@ -16,6 +16,10 @@ impl App {
         utils::save_tasks(&self.settings.db_file, &self);
     }
 
+    pub fn get_task(&self, index: usize) -> Option<&Task> {
+        self.tasks.get(index)
+    }
+
     pub fn add_task(&mut self, t: Task) {
         self.tasks.push(t);
         self.save_state();

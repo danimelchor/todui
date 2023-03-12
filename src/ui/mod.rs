@@ -14,10 +14,12 @@ use tui::{
 };
 
 mod all_tasks;
-use all_tasks::AllTasksPage;
-
 mod new_task;
+mod utils;
+
 use new_task::NewTaskPage;
+use all_tasks::AllTasksPage;
+use utils::wrap_text;
 
 pub fn start_ui(app: App) -> Result<()> {
     let mut stdout = stdout();
@@ -47,6 +49,7 @@ pub enum UIPage {
     SamePage,
     AllTasks,
     NewTask,
+    EditTask(usize),
 }
 
 pub trait Page<B: Backend> {
@@ -69,9 +72,13 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
             UIPage::NewTask => {
                 curr_page = Box::new(NewTaskPage::new(Rc::clone(&app)));
             }
+            UIPage::EditTask(task_id) => {
+                curr_page = Box::new(NewTaskPage::new_from_task(Rc::clone(&app), task_id));
+            }
             _ => {}
         }
     }
+    
 
     Ok(())
 }

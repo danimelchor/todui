@@ -50,7 +50,7 @@ impl Display for Repeat {
             Repeat::Monthly => write!(f, "Monthly"),
             Repeat::Yearly => write!(f, "Yearly"),
             Repeat::DaysOfWeek(days) => {
-                let days = days.iter().map(|d| d.to_string()).join(", ");
+                let days = days.iter().map(|d| d.to_string()).join(",");
                 write!(f, "Every {}", days)
             }
         }
