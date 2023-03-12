@@ -188,7 +188,7 @@ where
     fn ui(&self, f: &mut Frame<B>) {
         let rects = Layout::default()
             .constraints([Constraint::Percentage(100)].as_ref())
-            .margin(5)
+            .margin(2)
             .split(f.size());
 
         let header_cells = ["Done", "Name", "Date", "Repeats every", "Description"]
@@ -212,8 +212,8 @@ where
         for group in self.groups() {
             for (item_idx, item) in group.iter().enumerate() {
                 let x = match item.completed {
-                    true => "󰄴",
-                    false => "󰝦",
+                    true => " 󰄴",
+                    false => " 󰝦",
                 };
                 let cells = vec![
                     Cell::from(x),
