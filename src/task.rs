@@ -1,9 +1,9 @@
 use anyhow::Result;
-use chrono::{Datelike, Local, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate, Months, Days};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use crate::{repeat::Repeat, utils};
+use crate::{repeat::Repeat, utils, day_of_week::DayOfWeek};
 
 pub fn serialize_dt<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -72,20 +72,22 @@ impl Task {
         self.completed = true;
         let date = match &self.repeats {
             Repeat::DaysOfWeek(days) => {
-                let today = self.date.weekday();
-                let next_day = days
-                    .iter()
-                    .map(|d| d.to_int())
-                    .sorted()
-                    .find(|d| *d > today.num_days_from_monday())
-                    .unwrap_or(7);
-                Some(self.date + chrono::Duration::days(next_day as i64))
+                let mut new_date = None;
+                for i in 1..=7 {
+                    let day = self.date.checked_add_days(Days::new(i)).unwrap();
+                    let weekday = DayOfWeek::from_chrono(day.weekday());
+                    if days.contains(&weekday) {
+                        new_date = self.date.checked_add_days(Days::new(i));
+                        break;
+                    }
+                }
+                new_date
             }
             Repeat::Never => None,
-            Repeat::Daily => Some(self.date + chrono::Duration::days(1)),
-            Repeat::Weekly => Some(self.date + chrono::Duration::weeks(1)),
-            Repeat::Monthly => Some(self.date + chrono::Duration::weeks(4)),
-            Repeat::Yearly => Some(self.date + chrono::Duration::weeks(52)),
+            Repeat::Daily => self.date.checked_add_days(Days::new(1)),
+            Repeat::Weekly => self.date.checked_add_days(Days::new(7)),
+            Repeat::Monthly => self.date.checked_add_months(Months::new(1)),
+            Repeat::Yearly => self.date.checked_add_months(Months::new(12)),
         };
 
         if let Some(date) = date {

@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum DayOfWeek {
     Monday,
     Tuesday,
@@ -36,6 +36,18 @@ impl DayOfWeek {
             "Sat" => Ok(DayOfWeek::Saturday),
             "Sun" => Ok(DayOfWeek::Sunday),
             _ => Err(anyhow::anyhow!("Invalid day of the week")),
+        }
+    }
+
+    pub fn from_chrono(day: chrono::Weekday) -> Self {
+        match day {
+            chrono::Weekday::Mon => Self::Monday,
+            chrono::Weekday::Tue => Self::Tuesday,
+            chrono::Weekday::Wed => Self::Wednesday,
+            chrono::Weekday::Thu => Self::Thursday,
+            chrono::Weekday::Fri => Self::Friday,
+            chrono::Weekday::Sat => Self::Saturday,
+            chrono::Weekday::Sun => Self::Sunday,
         }
     }
 }
