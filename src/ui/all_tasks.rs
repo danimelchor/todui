@@ -32,14 +32,24 @@ impl AllTasksPage {
         }
     }
 
+    pub fn get_current_task_id(&self) -> Option<usize> {
+        if self.current_idx.is_none() {
+            return None;
+        }
+
+        let idx = self.current_idx.unwrap();
+        Some(self.app.borrow().tasks[idx].id.unwrap())
+    }
+
     pub fn toggle_selected(&mut self) {
         if self.current_idx.is_none() {
             return;
         }
 
+        let task_id = self.get_current_task_id().unwrap();
         self.app
             .borrow_mut()
-            .toggle_completed_task(self.current_idx.unwrap());
+            .toggle_completed_task(task_id);
 
         if !self.show_hidden {
             self.move_closest();
@@ -51,7 +61,8 @@ impl AllTasksPage {
             return;
         }
 
-        self.app.borrow_mut().delete_task(self.current_idx.unwrap());
+        let task_id = self.get_current_task_id().unwrap();
+        self.app.borrow_mut().delete_task(task_id);
         self.move_closest();
     }
 

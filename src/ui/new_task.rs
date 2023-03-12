@@ -1,8 +1,7 @@
-use crate::app::App;
-use crate::{repeat::Repeat, task::Task};
-use anyhow::{Context, Result};
-use chrono::NaiveDate;
+use crate::{app::App, task_form::TaskForm};
+use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode};
+use unicode_width::UnicodeWidthStr;
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
@@ -11,42 +10,8 @@ use tui::{
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame, Terminal,
 };
-use unicode_width::UnicodeWidthStr;
 
 use super::{Page, UIPage};
-
-pub struct TaskForm {
-    pub name: String,
-    pub date: String,
-    pub repeats: String,
-    pub description: String,
-}
-
-impl TaskForm {
-    pub fn new() -> TaskForm {
-        TaskForm {
-            name: "".to_string(),
-            date: "".to_string(),
-            repeats: "".to_string(),
-            description: "".to_string(),
-        }
-    }
-
-    pub fn submit(&mut self) -> Result<Task> {
-        let mut task = Task::new();
-
-        let repeat = Repeat::parse_from_str(&self.repeats).context("Invalid repeat format")?;
-        let date =
-            NaiveDate::parse_from_str(&self.date, "%Y-%m-%d").context("Invalid date format")?;
-
-        task.set_name(self.name.clone());
-        task.set_date(date);
-        task.set_repeats(repeat);
-        task.set_description(self.description.clone());
-
-        Ok(task)
-    }
-}
 
 #[derive(PartialEq)]
 pub enum NewTaskInputMode {
@@ -175,18 +140,16 @@ where
                     KeyCode::Char('b') => {
                         return Ok(UIPage::AllTasks);
                     }
-                    KeyCode::Enter => {
-                        match self.task_form.submit() {
-                            Ok(new_taks) => {
-                                if let Some(task_id) = self.editing_task {
-                                    self.app.borrow_mut().delete_task(task_id);
-                                }
-                                self.app.borrow_mut().add_task(new_taks);
-                                return Ok(UIPage::AllTasks);
+                    KeyCode::Enter => match self.task_form.submit() {
+                        Ok(new_taks) => {
+                            if let Some(task_id) = self.editing_task {
+                                self.app.borrow_mut().delete_task(task_id);
                             }
-                            Err(e) => {
-                                self.error = Some(e.to_string());
-                            }
+                            self.app.borrow_mut().add_task(new_taks);
+                            return Ok(UIPage::AllTasks);
+                        }
+                        Err(e) => {
+                            self.error = Some(e.to_string());
                         }
                     },
                     _ => {}

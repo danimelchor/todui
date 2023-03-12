@@ -1,9 +1,8 @@
+use crate::{day_of_week::DayOfWeek, repeat::Repeat, utils};
 use anyhow::Result;
-use chrono::{Datelike, Local, NaiveDate, Months, Days};
-use itertools::Itertools;
+use chrono::{Datelike, Days, Local, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use crate::{repeat::Repeat, utils, day_of_week::DayOfWeek};
 
 pub fn serialize_dt<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -24,6 +23,7 @@ where
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Task {
+    pub id: Option<usize>,
     pub name: String,
     #[serde(serialize_with = "serialize_dt", deserialize_with = "deserialize_dt")]
     pub date: NaiveDate,
@@ -37,13 +37,19 @@ impl Display for Task {
         let date = utils::date_to_str(&self.date);
         let repeats = self.repeats.to_string();
         let completed = if self.completed { "[x]" } else { "[ ]" };
-        write!(f, "{} {}\t\t{}\t\t{}", completed, self.name, date, repeats)
+        let id = self.id.unwrap_or(0);
+        write!(
+            f,
+            "{} {} (id: {})\t\t{}\t\t{}",
+            completed, self.name, id, date, repeats
+        )
     }
 }
 
 impl Task {
     pub fn new() -> Task {
         Task {
+            id: None,
             name: "".to_string(),
             date: Local::now().naive_local().date(),
             repeats: Repeat::Never,
@@ -110,6 +116,13 @@ impl Task {
             self.set_incomplete()
         } else {
             self.set_completed()
+        }
+    }
+
+    pub fn get_id(&self) -> usize {
+        match self.id {
+            Some(id) => id,
+            None => panic!("Tasks should always have an ID once added"),
         }
     }
 }

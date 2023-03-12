@@ -19,7 +19,6 @@ mod utils;
 
 use new_task::NewTaskPage;
 use all_tasks::AllTasksPage;
-use utils::wrap_text;
 
 pub fn start_ui(app: App) -> Result<()> {
     let mut stdout = stdout();

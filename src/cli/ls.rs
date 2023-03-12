@@ -6,10 +6,12 @@ use crate::task::Task;
 
 #[derive(Parser)]
 pub struct Args {
-        #[arg(long)]
-        format: Option<Format>,
-        #[arg(long)]
-        filter: Option<Filter>,
+    #[arg(long)]
+    format: Option<Format>,
+    #[arg(short,long)]
+    show_completed: bool,
+    #[arg(long)]
+    filter: Option<Filter>,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -25,11 +27,13 @@ enum Filter {
 }
 
 pub fn run(app: App, args: Args) -> Result<()> {
-    let filter = args.filter;
-    let format = args.format;
+    let Args { format, show_completed, filter } = args;
 
-    let mut tasks_iter: Box<dyn Iterator<Item = &Task>> =
-        Box::new(app.tasks.iter().filter(|&t| !t.completed));
+    let mut tasks_iter: Box<dyn Iterator<Item = &Task>> = if !show_completed {
+        Box::new(app.tasks.iter().filter(|&t| !t.completed))
+    } else {
+        Box::new(app.tasks.iter())
+    };
 
     match filter {
         Some(Filter::Today) => {

@@ -14,7 +14,7 @@ pub fn load_tasks(file: &str) -> Vec<Task> {
 
 pub fn save_tasks(file: &str, app: &App) {
     let file = fs::File::create(file).expect("Unable to create file");
-    serde_json::to_writer_pretty(file, &app.tasks).expect("Unable to write file");
+    serde_json::to_writer(file, &app.tasks).expect("Unable to write file");
 }
 
 pub fn date_to_str(dt: &NaiveDate) -> String {
