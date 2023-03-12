@@ -17,7 +17,7 @@ pub enum Repeat {
 impl Repeat {
     pub fn parse_from_str(s: &str) -> Result<Repeat> {
         match s {
-            "Never" => Ok(Repeat::Never),
+            "Never" | "" => Ok(Repeat::Never),
             "Daily" => Ok(Repeat::Daily),
             "Weekly" => Ok(Repeat::Weekly),
             "Monthly" => Ok(Repeat::Monthly),
