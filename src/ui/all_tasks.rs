@@ -197,9 +197,8 @@ where
                 KeyCode::Char('d') => self.delete_selected(),
                 KeyCode::Char('n') => return Ok(UIPage::NewTask),
                 KeyCode::Char('e') => {
-                    if let Some(idx) = self.current_idx {
-                        return Ok(UIPage::EditTask(idx));
-                    }
+                    let task_id = self.get_current_task_id().unwrap();
+                    return Ok(UIPage::EditTask(task_id));
                 }
                 _ => {}
             }
