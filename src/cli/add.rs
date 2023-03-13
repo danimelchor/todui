@@ -38,7 +38,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         repeats: repeats.unwrap_or("".to_string()),
         description: description.unwrap_or("".to_string()),
     };
-    let task = task_form.submit()?;
+    let task = task_form.submit(app.settings.display_date_format.clone())?;
     let task = app.add_task(task);
 
     cli_utils::print_task(&task, format, &app.settings);

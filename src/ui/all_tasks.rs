@@ -176,7 +176,7 @@ impl AllTasksPage {
     }
 
     pub fn date_to_str(&self, date: &NaiveDate) -> String {
-        utils::date_to_str(date, &self.app.borrow().settings.date_format)
+        utils::date_to_str(date, &self.app.borrow().settings.display_date_format)
     }
 }
 

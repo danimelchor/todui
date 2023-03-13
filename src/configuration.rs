@@ -7,7 +7,9 @@ use std::io::prelude::*;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Settings {
     pub db_file: String,
-    pub date_format: String,
+    pub display_date_format: String,
+    pub input_date_format: String,
+    pub input_date_hint: String,
     pub show_complete: bool,
     pub icons: Icons,
 }
@@ -42,7 +44,9 @@ impl Settings {
     pub fn default() -> Self {
         Settings {
             db_file: Self::get_default_db_file(),
-            date_format: "%a %b %-d".to_string(),
+            display_date_format: "%a %b %-d".to_string(),
+            input_date_format: "%d-%m-%Y".to_string(),
+            input_date_hint: "DD-MM-YYYY".to_string(),
             show_complete: true,
             icons: Icons::default(),
         }

@@ -117,6 +117,14 @@ impl NewTaskPage {
             Style::default()
         }
     }
+
+    fn get_date_hint(&self) -> String {
+        self.app.borrow().settings.input_date_hint.clone()
+    }
+
+    fn get_date_format(&self) -> String {
+        self.app.borrow().settings.input_date_format.clone()
+    }
 }
 
 impl<B> Page<B> for NewTaskPage
@@ -140,7 +148,7 @@ where
                     KeyCode::Char('b') => {
                         return Ok(UIPage::AllTasks);
                     }
-                    KeyCode::Enter => match self.task_form.submit() {
+                    KeyCode::Enter => match self.task_form.submit(self.get_date_format()) {
                         Ok(new_taks) => {
                             if let Some(task_id) = self.editing_task {
                                 self.app.borrow_mut().delete_task(task_id);
@@ -205,7 +213,7 @@ where
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Date (YYYY-MM-DD)"),
+                    .title(format!("Date ({})", self.get_date_hint())),
             );
         f.render_widget(input, chunks[2]);
 

@@ -22,12 +22,12 @@ impl TaskForm {
         }
     }
 
-    pub fn submit(&mut self) -> Result<Task> {
+    pub fn submit(&mut self, date_format: String) -> Result<Task> {
         let mut task = Task::new();
 
         let repeat = Repeat::parse_from_str(&self.repeats).context("Invalid repeat format")?;
         let date =
-            NaiveDate::parse_from_str(&self.date, "%Y-%m-%d").context("Invalid date format")?;
+            NaiveDate::parse_from_str(&self.date, date_format.as_str()).context("Invalid date format")?;
 
         task.set_name(self.name.clone());
         task.set_date(date);
