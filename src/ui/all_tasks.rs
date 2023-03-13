@@ -225,7 +225,7 @@ where
         let header = Row::new(header_cells).height(1).bottom_margin(1);
 
         // Rows
-        let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+        let selected_style = Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD);
         let complete_style = Style::default().fg(Color::DarkGray);
         let default_style = Style::default().fg(Color::White);
 
