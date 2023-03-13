@@ -1,8 +1,10 @@
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-
 use crate::app::App;
 use crate::task::Task;
+
+use super::cli_utils;
+use super::formats::Format;
 
 #[derive(Parser)]
 pub struct Args {
@@ -12,12 +14,6 @@ pub struct Args {
     show_completed: bool,
     #[arg(long)]
     filter: Option<Filter>,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum Format {
-    Json,
-    PlainText,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -46,18 +42,7 @@ pub fn run(app: App, args: Args) -> Result<()> {
     }
 
     let tasks: Vec<&Task> = tasks_iter.collect();
-
-    match format {
-        Some(Format::Json) => {
-            let json = serde_json::to_string(&tasks)?;
-            println!("{}", json);
-        }
-        _ => {
-            for task in tasks {
-                println!("{}", task);
-            }
-        }
-    }
+    cli_utils::print_tasks(tasks, format, &app.settings);
 
     Ok(())
 }

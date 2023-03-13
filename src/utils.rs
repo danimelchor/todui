@@ -1,6 +1,7 @@
 use chrono::{Local, NaiveDate};
 
 use crate::app::App;
+use crate::configuration::Settings;
 use crate::task::Task;
 use std::fs;
 use std::io::prelude::*;
@@ -17,7 +18,12 @@ pub fn save_tasks(file: &str, app: &App) {
     serde_json::to_writer(file, &app.tasks).expect("Unable to write file");
 }
 
-pub fn date_to_str(dt: &NaiveDate) -> String {
+pub fn save_settings(file: &str, settings: &Settings) {
+    let file = fs::File::create(file).expect("Unable to create file");
+    serde_json::to_writer(file, &settings).expect("Unable to write file");
+}
+
+pub fn date_to_str(dt: &NaiveDate, format: &String) -> String {
     let today = Local::now().naive_local().date();
     let delta = dt.signed_duration_since(today);
 
@@ -25,7 +31,7 @@ pub fn date_to_str(dt: &NaiveDate) -> String {
         0 => "Today".to_string(),
         1 => "Tomorrow".to_string(),
         2..=6 => dt.format("%A").to_string(),
-        _ => dt.format("%Y-%m-%d").to_string(),
+        _ => dt.format(format.as_str()).to_string(),
     }
 }
 

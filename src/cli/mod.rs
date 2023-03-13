@@ -6,6 +6,10 @@ mod ls;
 mod add;
 mod delete;
 mod complete;
+mod cli_utils;
+
+// Shared enums and structs
+mod formats;
 
 #[derive(Parser)]
 struct Args {

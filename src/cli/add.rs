@@ -1,7 +1,9 @@
 use anyhow::Result;
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 
 use crate::app::App;
+use crate::cli::cli_utils;
+use crate::cli::formats::Format;
 use crate::task_form::TaskForm;
 
 #[derive(Parser)]
@@ -15,12 +17,6 @@ pub struct Args {
     description: Option<String>,
     #[arg(long)]
     format: Option<Format>,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum Format {
-    Json,
-    PlainText,
 }
 
 pub fn run(mut app: App, args: Args) -> Result<()> {
@@ -40,15 +36,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
     let task = task_form.submit()?;
     let task = app.add_task(task);
 
-    match format {
-        Some(Format::Json) => {
-            let json = serde_json::to_string(&task)?;
-            println!("{}", json);
-        }
-        _ => {
-            println!("{}", task);
-        }
-    }
+    cli_utils::print_task(&task, format, &app.settings);
 
     Ok(())
 }

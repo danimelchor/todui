@@ -1,7 +1,7 @@
-use anyhow::Result;
-use clap::{Parser, ValueEnum};
-
+use super::{cli_utils, formats::Format};
 use crate::app::App;
+use anyhow::Result;
+use clap::Parser;
 
 #[derive(Parser)]
 pub struct Args {
@@ -9,12 +9,6 @@ pub struct Args {
     id: usize,
     #[arg(short, long)]
     format: Option<Format>,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum Format {
-    Json,
-    PlainText,
 }
 
 pub fn run(mut app: App, args: Args) -> Result<()> {
@@ -26,15 +20,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
     }
 
     let task = task.unwrap();
-    match format {
-        Some(Format::Json) => {
-            let json = serde_json::to_string(&task)?;
-            println!("{}", json);
-        }
-        _ => {
-            println!("{}", task);
-        }
-    }
+    cli_utils::print_task(&task, format, &app.settings);
 
     Ok(())
 }

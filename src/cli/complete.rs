@@ -1,7 +1,7 @@
+use super::{cli_utils, formats::Format};
+use crate::app::App;
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-
-use crate::app::App;
 
 #[derive(Parser)]
 pub struct Args {
@@ -19,14 +19,12 @@ enum CompletedStatus {
     Incomplete,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum Format {
-    Json,
-    PlainText,
-}
-
 pub fn run(mut app: App, args: Args) -> Result<()> {
-    let Args { id, completed, format } = args;
+    let Args {
+        id,
+        completed,
+        format,
+    } = args;
     let completed_bool = match completed {
         CompletedStatus::Complete => true,
         CompletedStatus::Incomplete => false,
@@ -38,15 +36,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
     }
 
     let task = task.unwrap();
-    match format {
-        Some(Format::Json) => {
-            let json = serde_json::to_string(&task)?;
-            println!("{}", json);
-        }
-        _ => {
-            println!("{}", task);
-        }
-    }
+    cli_utils::print_task(&task, format, &app.settings);
 
     Ok(())
 }

@@ -2,13 +2,14 @@ use super::utils::wrap_text;
 use crate::app::App;
 use crate::task::Task;
 use crate::ui::{Page, UIPage};
-use crate::utils::date_to_str;
+use crate::utils;
 use anyhow::Result;
+use chrono::NaiveDate;
 use crossterm::event::{self, Event, KeyCode};
 use itertools::Itertools;
-use tui::widgets::BorderType;
 use std::cell::RefCell;
 use std::rc::Rc;
+use tui::widgets::BorderType;
 use tui::{
     backend::Backend,
     layout::{Constraint, Layout},
@@ -25,8 +26,9 @@ pub struct AllTasksPage {
 
 impl AllTasksPage {
     pub fn new(app: Rc<RefCell<App>>) -> AllTasksPage {
+        let show_hidden = app.borrow().settings.show_completed;
         AllTasksPage {
-            show_hidden: true,
+            show_hidden,
             current_idx: None,
             app,
         }
@@ -47,9 +49,7 @@ impl AllTasksPage {
         }
 
         let task_id = self.get_current_task_id().unwrap();
-        self.app
-            .borrow_mut()
-            .toggle_completed_task(task_id);
+        self.app.borrow_mut().toggle_completed_task(task_id);
 
         if !self.show_hidden {
             self.move_closest();
@@ -162,9 +162,21 @@ impl AllTasksPage {
 
     pub fn toggle_hidden(&mut self) {
         self.show_hidden = !self.show_hidden;
+        self.app
+            .borrow_mut()
+            .settings
+            .set_show_completed(self.show_hidden);
         if !self.show_hidden {
             self.move_closest();
         }
+    }
+
+    pub fn get_icon(&self, completed: bool) -> String {
+        self.app.borrow().settings.icons.get_icon(completed)
+    }
+
+    pub fn date_to_str(&self, date: &NaiveDate) -> String {
+        utils::date_to_str(date, &self.app.borrow().settings.date_format)
     }
 }
 
@@ -222,14 +234,10 @@ where
         let mut current_idx = 0;
         for group in self.groups() {
             for (item_idx, item) in group.iter().enumerate() {
-                let x = match item.completed {
-                    true => " 󰄴",
-                    false => " 󰝦",
-                };
                 let cells = vec![
-                    Cell::from(x),
+                    Cell::from(self.get_icon(item.completed)),
                     Cell::from(wrap_text(item.name.clone(), 25)),
-                    Cell::from(date_to_str(&item.date)),
+                    Cell::from(self.date_to_str(&item.date)),
                     Cell::from(item.repeats.to_string()),
                     Cell::from(wrap_text(
                         item.description.clone().unwrap_or("".to_string()),
@@ -272,12 +280,17 @@ where
         }
         let t = Table::new(rows)
             .header(header)
-            .block(Block::default().borders(Borders::ALL).border_type(BorderType::Rounded).title("Todos"))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .title("Todos"),
+            )
             .widths(&[
                 Constraint::Length(4),
                 Constraint::Length(25),
                 Constraint::Length(10),
-                Constraint::Min(13),
+                Constraint::Min(23),
                 Constraint::Length(35),
             ])
             .column_spacing(2);

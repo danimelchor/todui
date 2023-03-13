@@ -1,8 +1,7 @@
-use crate::{day_of_week::DayOfWeek, repeat::Repeat, utils};
+use crate::{day_of_week::DayOfWeek, repeat::Repeat};
 use anyhow::Result;
 use chrono::{Datelike, Days, Local, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 
 pub fn serialize_dt<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -30,20 +29,6 @@ pub struct Task {
     pub repeats: Repeat,
     pub description: Option<String>,
     pub completed: bool,
-}
-
-impl Display for Task {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let date = utils::date_to_str(&self.date);
-        let repeats = self.repeats.to_string();
-        let completed = if self.completed { "[x]" } else { "[ ]" };
-        let id = self.id.unwrap_or(0);
-        write!(
-            f,
-            "{} {} (id: {})\t\t{}\t\t{}",
-            completed, self.name, id, date, repeats
-        )
-    }
 }
 
 impl Task {
