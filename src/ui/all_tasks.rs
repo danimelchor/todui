@@ -178,6 +178,25 @@ impl AllTasksPage {
     pub fn date_to_str(&self, date: &DateTime<Local>) -> String {
         utils::date_to_display_str(date, &self.app.borrow().settings)
     }
+
+    pub fn open_selected_link(&self) {
+        if self.current_idx.is_none() {
+            return;
+        }
+
+        let task_id = self.get_current_task_id().unwrap();
+        let desc_text = self
+            .app
+            .borrow()
+            .get_task(task_id)
+            .unwrap()
+            .description
+            .clone()
+            .unwrap_or_default();
+        if utils::is_hyperlink(&desc_text) {
+            open::that(desc_text).unwrap();
+        }
+    }
 }
 
 struct Widths {
@@ -201,6 +220,7 @@ where
                 KeyCode::Char('x') => self.toggle_selected(),
                 KeyCode::Char('h') => self.toggle_hidden(),
                 KeyCode::Char('d') => self.delete_selected(),
+                KeyCode::Enter => self.open_selected_link(),
                 KeyCode::Char('n') => return Ok(UIPage::NewTask),
                 KeyCode::Char('e') => {
                     let task_id = self.get_current_task_id().unwrap();
@@ -251,20 +271,29 @@ where
 
                 widths.date = max(widths.date, date_str.len());
                 widths.repeats_every = max(widths.repeats_every, repeats_str.len());
-                widths.name = max(widths.name, item.name.len());
 
+                // Name cell
+                widths.name = max(widths.name, item.name.len());
                 let mut name_cell = Cell::from(item.name.clone());
                 if item.complete {
                     name_cell =
                         name_cell.style(Style::default().add_modifier(Modifier::CROSSED_OUT));
                 }
 
+                // Description cell
+                let desc_text = item.description.clone().unwrap_or_default();
+                let desc_cell = if utils::is_hyperlink(&desc_text) {
+                    Cell::from("Link").style(Style::default().fg(Color::LightBlue))
+                } else {
+                    Cell::from(desc_text)
+                };
+
                 let cells = vec![
                     Cell::from(self.get_icon(item.complete)),
                     name_cell,
                     Cell::from(date_str),
                     Cell::from(repeats_str),
-                    Cell::from(item.description.clone().unwrap_or("".to_string())),
+                    desc_cell,
                 ];
 
                 let style = match item.complete {

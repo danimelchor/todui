@@ -19,3 +19,4 @@ anyhow = "1.0.69"
 itertools = "0.10.5"
 unicode-width = "0.1.10"
 clap = { version = "4.1.8", features = ["derive"] }
+open = "4.0.0"

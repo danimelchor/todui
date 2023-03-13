@@ -245,7 +245,7 @@ where
         let curr_text = self.task_form.description.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(3))
-            .block(Block::default().borders(Borders::ALL).title("Description"));
+            .block(Block::default().borders(Borders::ALL).title("Description or URL"));
         f.render_widget(input, chunks[4]);
 
         // Place cursor
