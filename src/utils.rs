@@ -1,4 +1,5 @@
-use chrono::{Local, NaiveDate};
+use anyhow::{anyhow, Result};
+use chrono::{DateTime, Local, NaiveDate, TimeZone, Timelike};
 
 use crate::app::App;
 use crate::configuration::Settings;
@@ -22,14 +23,43 @@ pub fn save_settings(file: &str, settings: &Settings) {
     serde_json::to_writer(file, &settings).expect("Unable to write file");
 }
 
-pub fn date_to_str(dt: &NaiveDate, format: &String) -> String {
-    let today = Local::now().naive_local().date();
-    let delta = dt.signed_duration_since(today);
+pub fn date_has_time(date: &DateTime<Local>) -> bool {
+    let time = date.time();
+    if time.hour() == 23 && time.minute() == 59 {
+        return false;
+    }
+    true
+}
 
-    match delta.num_days() {
-        0 => "Today".to_string(),
-        1 => "Tomorrow".to_string(),
-        2..=6 => dt.format("%A").to_string(),
-        _ => dt.format(format.as_str()).to_string(),
+pub fn date_to_str(dt: &DateTime<Local>, settings: &Settings) -> String {
+    let format;
+    if date_has_time(&dt) {
+        format = settings.date_formats.display_datetime_format.clone();
+    } else {
+        format = settings.date_formats.display_date_format.clone();
+    }
+    dt.format(format.as_str()).to_string()
+}
+
+pub fn get_today() -> DateTime<Local> {
+    let today = Local::now().date_naive().and_hms_opt(23, 59, 59).unwrap();
+    Local.from_local_datetime(&today).unwrap()
+}
+
+pub fn parse_date(s: &String, settings: &Settings) -> Result<DateTime<Local>> {
+    let datetime_format = settings.date_formats.input_datetime_format.as_str();
+    let date_format = settings.date_formats.input_date_format.as_str();
+
+    let attempt_datetime = Local.datetime_from_str(s.as_str(), datetime_format);
+    let attempt_date = NaiveDate::parse_from_str(s.as_str(), date_format);
+
+    if attempt_datetime.is_ok() {
+        Ok(attempt_datetime.unwrap())
+    } else if attempt_date.is_ok() {
+        let date = attempt_date.unwrap();
+        let datetime = date.and_hms_opt(23, 59, 59).unwrap();
+        Ok(Local.from_local_datetime(&datetime).unwrap())
+    } else {
+        Err(anyhow!("Unable to parse date"))
     }
 }

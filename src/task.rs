@@ -1,22 +1,22 @@
 use crate::{day_of_week::DayOfWeek, repeat::Repeat};
 use anyhow::Result;
-use chrono::{Datelike, Days, Local, Months, NaiveDate};
+use chrono::{Datelike, Days, Local, Months, DateTime, TimeZone};
 use serde::{Deserialize, Serialize};
 
-pub fn serialize_dt<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize_dt<S>(date: &DateTime<Local>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
-    let s = date.format("%Y-%m-%d").to_string();
+    let s = date.format("%+").to_string();
     serializer.serialize_str(&s)
 }
 
-pub fn deserialize_dt<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+pub fn deserialize_dt<'de, D>(deserializer: D) -> Result<DateTime<Local>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let dt = NaiveDate::parse_from_str(&s, "%Y-%m-%d").unwrap();
+    let dt = Local.datetime_from_str(&s, "%+").unwrap();
     Ok(dt)
 }
 
@@ -25,7 +25,7 @@ pub struct Task {
     pub id: Option<usize>,
     pub name: String,
     #[serde(serialize_with = "serialize_dt", deserialize_with = "deserialize_dt")]
-    pub date: NaiveDate,
+    pub date: DateTime<Local>,
     pub repeats: Repeat,
     pub description: Option<String>,
     pub complete: bool,
@@ -36,7 +36,7 @@ impl Task {
         Task {
             id: None,
             name: "".to_string(),
-            date: Local::now().naive_local().date(),
+            date: Local::now(),
             repeats: Repeat::Never,
             description: None,
             complete: false,
@@ -47,7 +47,7 @@ impl Task {
         self.name = name;
     }
 
-    pub fn set_date(&mut self, date: NaiveDate) {
+    pub fn set_date(&mut self, date: DateTime<Local>) {
         self.date = date;
     }
 

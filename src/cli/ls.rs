@@ -24,7 +24,8 @@ enum Filter {
     All,
     Today,
     Past,
-    TodayAndPast
+    TodayAndPast,
+    Next24
 }
 
 pub fn run(app: App, args: Args) -> Result<()> {
@@ -36,23 +37,30 @@ pub fn run(app: App, args: Args) -> Result<()> {
         Box::new(app.tasks.iter())
     };
 
+    let now = chrono::Local::now();
+
     match filter {
         Some(Filter::Today) => {
             tasks_iter = Box::new(tasks_iter.filter(|&t| {
-                let today = chrono::Local::now().date_naive();
-                t.date == today
+                let today = now.date_naive();
+                t.date.date_naive() == today
             }));
         }
         Some(Filter::Past) => {
             tasks_iter = Box::new(tasks_iter.filter(|&t| {
-                let today = chrono::Local::now().date_naive();
-                t.date < today
+                t.date < now
             }));
         }
         Some(Filter::TodayAndPast) => {
             tasks_iter = Box::new(tasks_iter.filter(|&t| {
-                let today = chrono::Local::now().date_naive();
-                t.date <= today
+                let today = now.date_naive();
+                t.date.date_naive()<= today
+            }));
+        }
+        Some(Filter::Next24) => {
+            tasks_iter = Box::new(tasks_iter.filter(|&t| {
+                let tomorrow = now + chrono::Duration::days(1);
+                t.date >= now && t.date < tomorrow
             }));
         }
         _ => {}

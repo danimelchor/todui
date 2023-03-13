@@ -7,9 +7,7 @@ use std::io::prelude::*;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Settings {
     pub db_file: String,
-    pub display_date_format: String,
-    pub input_date_format: String,
-    pub input_date_hint: String,
+    pub date_formats: DateFormats,
     pub show_complete: bool,
     pub icons: Icons,
 }
@@ -40,15 +38,36 @@ impl Icons {
     }
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DateFormats {
+    pub display_date_format: String,
+    pub display_datetime_format: String,
+    pub input_date_format: String,
+    pub input_date_hint: String,
+    pub input_datetime_format: String,
+    pub input_datetime_hint: String,
+}
+
+impl DateFormats {
+    fn new() -> Self {
+        DateFormats {
+            display_date_format: "%a %b %-d".to_string(),
+            display_datetime_format: "%a %b %-d at %-H:%M".to_string(),
+            input_datetime_format: "%d-%m-%Y %H:%M".to_string(),
+            input_datetime_hint: "DD-MM-YYYY HH:MM".to_string(),
+            input_date_format: "%d-%m-%Y".to_string(),
+            input_date_hint: "DD-MM-YYYY".to_string(),
+        }
+    }
+}
+
 impl Settings {
     pub fn default() -> Self {
         Settings {
             db_file: Self::get_default_db_file(),
-            display_date_format: "%a %b %-d".to_string(),
-            input_date_format: "%d-%m-%Y".to_string(),
-            input_date_hint: "DD-MM-YYYY".to_string(),
             show_complete: true,
             icons: Icons::default(),
+            date_formats: DateFormats::new(),
         }
     }
 

@@ -4,7 +4,7 @@ use crate::task::Task;
 use crate::ui::{Page, UIPage};
 use crate::utils;
 use anyhow::Result;
-use chrono::NaiveDate;
+use chrono::{DateTime, Local};
 use crossterm::event::{self, Event, KeyCode};
 use itertools::Itertools;
 use std::cell::RefCell;
@@ -175,8 +175,8 @@ impl AllTasksPage {
         self.app.borrow().settings.icons.get_icon(complete)
     }
 
-    pub fn date_to_str(&self, date: &NaiveDate) -> String {
-        utils::date_to_str(date, &self.app.borrow().settings.display_date_format)
+    pub fn date_to_str(&self, date: &DateTime<Local>) -> String {
+        utils::date_to_str(date, &self.app.borrow().settings)
     }
 }
 
@@ -288,7 +288,7 @@ where
             .widths(&[
                 Constraint::Length(4),
                 Constraint::Length(25),
-                Constraint::Length(10),
+                Constraint::Length(20),
                 Constraint::Min(23),
                 Constraint::Length(35),
             ])

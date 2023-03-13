@@ -1,7 +1,6 @@
 use crate::{app::App, task_form::TaskForm};
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode};
-use unicode_width::UnicodeWidthStr;
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
@@ -10,6 +9,7 @@ use tui::{
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame, Terminal,
 };
+use unicode_width::UnicodeWidthStr;
 
 use super::{Page, UIPage};
 
@@ -119,11 +119,21 @@ impl NewTaskPage {
     }
 
     fn get_date_hint(&self) -> String {
-        self.app.borrow().settings.input_date_hint.clone()
-    }
-
-    fn get_date_format(&self) -> String {
-        self.app.borrow().settings.input_date_format.clone()
+        let date_hint = self
+            .app
+            .borrow()
+            .settings
+            .date_formats
+            .input_date_hint
+            .clone();
+        let datetime_hint = self
+            .app
+            .borrow()
+            .settings
+            .date_formats
+            .input_datetime_hint
+            .clone();
+        format!("{} or {}", date_hint, datetime_hint)
     }
 }
 
@@ -148,18 +158,23 @@ where
                     KeyCode::Char('b') => {
                         return Ok(UIPage::AllTasks);
                     }
-                    KeyCode::Enter => match self.task_form.submit(self.get_date_format()) {
-                        Ok(new_taks) => {
-                            if let Some(task_id) = self.editing_task {
-                                self.app.borrow_mut().delete_task(task_id);
+                    KeyCode::Enter => {
+                        let mut app = self.app.borrow_mut();
+                        let settings = &app.settings;
+                        let form_result = self.task_form.submit(&settings);
+                        match form_result {
+                            Ok(new_taks) => {
+                                if let Some(task_id) = self.editing_task {
+                                    app.delete_task(task_id);
+                                }
+                                app.add_task(new_taks);
+                                return Ok(UIPage::AllTasks);
                             }
-                            self.app.borrow_mut().add_task(new_taks);
-                            return Ok(UIPage::AllTasks);
+                            Err(e) => {
+                                self.error = Some(e.to_string());
+                            }
                         }
-                        Err(e) => {
-                            self.error = Some(e.to_string());
-                        }
-                    },
+                    }
                     _ => {}
                 },
                 _ => match key.code {
@@ -194,7 +209,7 @@ where
 
         // Keybinds description paragraph
         let keybinds = Paragraph::new(
-        "Press 'i' to enter input mode, 'q' to quit, 'j' and 'k' to move up and down, 'Enter' to save, 'Esc' to exit input mode, and 'b' to go back to the main screen"
+        "Press 'i' to enter input mode, 'q' to quit, 'j' and 'k' to move up and down, 'Enter' to save, 'Esc' to exit input mode, and 'b' to go back to the main screen. (*) Fields are required."
     ).alignment(Alignment::Center)
         .wrap(Wrap { trim: true });
         f.render_widget(keybinds, chunks[0]);
@@ -203,7 +218,7 @@ where
         let curr_text = self.task_form.name.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(0))
-            .block(Block::default().borders(Borders::ALL).title("Name"));
+            .block(Block::default().borders(Borders::ALL).title("Name (*)"));
         f.render_widget(input, chunks[1]);
 
         // Date
