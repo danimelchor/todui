@@ -42,7 +42,7 @@ impl Settings {
     pub fn default() -> Self {
         Settings {
             db_file: Self::get_default_db_file(),
-            date_format: "%a %b %-m".to_string(),
+            date_format: "%a %b %-d".to_string(),
             show_complete: true,
             icons: Icons::default(),
         }
