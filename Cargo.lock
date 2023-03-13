@@ -704,22 +704,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-todo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "config",
- "crossterm",
- "itertools",
- "serde",
- "serde_json",
- "tui",
- "unicode-width",
-]
-
-[[package]]
 name = "rustix"
 version = "0.36.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -884,6 +868,22 @@ dependencies = [
  "libc",
  "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi",
+]
+
+[[package]]
+name = "todo-rs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "config",
+ "crossterm",
+ "itertools",
+ "serde",
+ "serde_json",
+ "tui",
+ "unicode-width",
 ]
 
 [[package]]

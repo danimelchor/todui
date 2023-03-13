@@ -5,10 +5,10 @@
 You can run the TUI by executing `rust-todo` anywhere in your terminal. To use the CLI, you can start by running `rust-todo --help`:
 
 ```
-$ rust-todo --help
-A simple CLI and TUI for your todos
+$ todo-rs --help
+A CLI and TUI for your todos
 
-Usage: rust-todo <COMMAND>
+Usage: todo-rs <COMMAND>
 
 Commands:
   ls        Lists all the tasks
@@ -25,8 +25,8 @@ Options:
 ## Config
 
 The config file can be found in:
-- Unix: `~/.config/rust-todo/settings.json`
-- Windows: `C:\Users\<user>\AppData\Roaming\rust-todo\settings.json`
+- Unix: `~/.config/todo-rs/settings.json`
+- Windows: `C:\Users\<user>\AppData\Roaming\todo-rs\settings.json`
 
 ## Installation
 

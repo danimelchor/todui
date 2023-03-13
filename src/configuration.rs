@@ -50,7 +50,7 @@ impl Settings {
 
     pub fn default_path() -> String {
         let home = std::env::var("HOME").unwrap();
-        let path = format!("{}/.config/rust-todo/", home);
+        let path = format!("{}/.config/todo-rs", home);
         fs::create_dir_all(&path).unwrap();
         path
     }
@@ -72,8 +72,8 @@ impl Settings {
     }
 
     pub fn get_settings_path() -> String {
-        let home = std::env::var("HOME").unwrap();
-        let path = format!("{}/.config/rust-todo/settings.json", home);
+        let path = Self::default_path();
+        let path = format!("{}/settings.json", path);
         if !std::path::Path::new(&path).exists() {
             let settings = Settings::default();
             let settings_json = serde_json::to_string_pretty(&settings).unwrap();

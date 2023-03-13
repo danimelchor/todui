@@ -12,10 +12,7 @@ mod cli_utils;
 mod formats;
 
 #[derive(Parser)]
-#[command(name = "todo-rs")]
-#[command(author = "Daniel M. <dmh672@gmail.com>")]
-#[command(version = "1.0")]
-#[command(about = "A simple CLI and TUI for your todos", long_about = None)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
     command: Command,

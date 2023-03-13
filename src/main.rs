@@ -1,6 +1,6 @@
 use anyhow::Result;
-use rust_todo::configuration::get_configuration;
-use rust_todo::{app::App, cli, ui};
+use todo_rs::configuration::get_configuration;
+use todo_rs::{app::App, cli, ui};
 
 fn main() -> Result<()> {
     // Check args, if none, run ui, else run cli

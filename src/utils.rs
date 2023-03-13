@@ -4,7 +4,6 @@ use crate::app::App;
 use crate::configuration::Settings;
 use crate::task::Task;
 use std::fs;
-use std::io::prelude::*;
 
 pub fn load_tasks(file: &str) -> Vec<Task> {
     let file = fs::read_to_string(file).expect("Unable to read file");
@@ -33,15 +32,4 @@ pub fn date_to_str(dt: &NaiveDate, format: &String) -> String {
         2..=6 => dt.format("%A").to_string(),
         _ => dt.format(format.as_str()).to_string(),
     }
-}
-
-pub fn log(s: String) {
-    // Save to ~/.config/rust-todo/log.txt
-    let mut open = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("/Users/danielmelchor/.config/rust-todo/log.txt")
-        .expect("Unable to open log");
-
-    writeln!(open, "{}", s).expect("Unable to write to log");
 }
