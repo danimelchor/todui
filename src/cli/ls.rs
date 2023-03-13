@@ -20,6 +20,8 @@ pub struct Args {
 enum Filter {
     All,
     Today,
+    Past,
+    TodayAndPast
 }
 
 pub fn run(app: App, args: Args) -> Result<()> {
@@ -36,6 +38,18 @@ pub fn run(app: App, args: Args) -> Result<()> {
             tasks_iter = Box::new(tasks_iter.filter(|&t| {
                 let today = chrono::Local::now().date_naive();
                 t.date == today
+            }));
+        }
+        Some(Filter::Past) => {
+            tasks_iter = Box::new(tasks_iter.filter(|&t| {
+                let today = chrono::Local::now().date_naive();
+                t.date < today
+            }));
+        }
+        Some(Filter::TodayAndPast) => {
+            tasks_iter = Box::new(tasks_iter.filter(|&t| {
+                let today = chrono::Local::now().date_naive();
+                t.date <= today
             }));
         }
         _ => {}
