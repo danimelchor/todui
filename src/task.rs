@@ -28,7 +28,7 @@ pub struct Task {
     pub date: NaiveDate,
     pub repeats: Repeat,
     pub description: Option<String>,
-    pub completed: bool,
+    pub complete: bool,
 }
 
 impl Task {
@@ -39,7 +39,7 @@ impl Task {
             date: Local::now().naive_local().date(),
             repeats: Repeat::Never,
             description: None,
-            completed: false,
+            complete: false,
         }
     }
 
@@ -59,8 +59,8 @@ impl Task {
         self.description = Some(description);
     }
 
-    pub fn set_completed(&mut self) -> Option<Task> {
-        self.completed = true;
+    pub fn set_complete(&mut self) -> Option<Task> {
+        self.complete = true;
         let date = match &self.repeats {
             Repeat::DaysOfWeek(days) => {
                 let mut new_date = None;
@@ -92,15 +92,15 @@ impl Task {
     }
 
     pub fn set_incomplete(&mut self) -> Option<Task> {
-        self.completed = false;
+        self.complete = false;
         None
     }
 
-    pub fn toggle_completed(&mut self) -> Option<Task> {
-        if self.completed {
+    pub fn toggle_complete(&mut self) -> Option<Task> {
+        if self.complete {
             self.set_incomplete()
         } else {
-            self.set_completed()
+            self.set_complete()
         }
     }
 

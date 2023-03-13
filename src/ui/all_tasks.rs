@@ -26,7 +26,7 @@ pub struct AllTasksPage {
 
 impl AllTasksPage {
     pub fn new(app: Rc<RefCell<App>>) -> AllTasksPage {
-        let show_hidden = app.borrow().settings.show_completed;
+        let show_hidden = app.borrow().settings.show_complete;
         AllTasksPage {
             show_hidden,
             current_idx: None,
@@ -49,7 +49,7 @@ impl AllTasksPage {
         }
 
         let task_id = self.get_current_task_id().unwrap();
-        self.app.borrow_mut().toggle_completed_task(task_id);
+        self.app.borrow_mut().toggle_complete_task(task_id);
 
         if !self.show_hidden {
             self.move_closest();
@@ -86,7 +86,7 @@ impl AllTasksPage {
         }
 
         for i in curr_idx + 1..len {
-            if !self.app.borrow().tasks[i].completed {
+            if !self.app.borrow().tasks[i].complete {
                 self.current_idx = Some(i);
                 return;
             }
@@ -111,7 +111,7 @@ impl AllTasksPage {
         }
 
         for i in (0..curr_idx).rev() {
-            if !self.app.borrow().tasks[i].completed {
+            if !self.app.borrow().tasks[i].complete {
                 self.current_idx = Some(i);
                 return;
             }
@@ -144,14 +144,14 @@ impl AllTasksPage {
         let app = self.app.borrow();
 
         for i in curr_idx..len {
-            if !app.tasks[i].completed {
+            if !app.tasks[i].complete {
                 self.current_idx = Some(i);
                 return;
             }
         }
 
         for i in (0..curr_idx).rev() {
-            if !app.tasks[i].completed {
+            if !app.tasks[i].complete {
                 self.current_idx = Some(i);
                 return;
             }
@@ -165,14 +165,14 @@ impl AllTasksPage {
         self.app
             .borrow_mut()
             .settings
-            .set_show_completed(self.show_hidden);
+            .set_show_complete(self.show_hidden);
         if !self.show_hidden {
             self.move_closest();
         }
     }
 
-    pub fn get_icon(&self, completed: bool) -> String {
-        self.app.borrow().settings.icons.get_icon(completed)
+    pub fn get_icon(&self, complete: bool) -> String {
+        self.app.borrow().settings.icons.get_icon(complete)
     }
 
     pub fn date_to_str(&self, date: &NaiveDate) -> String {
@@ -226,7 +226,7 @@ where
 
         // Rows
         let selected_style = Style::default().add_modifier(Modifier::REVERSED);
-        let completed_style = Style::default().fg(Color::DarkGray);
+        let complete_style = Style::default().fg(Color::DarkGray);
         let default_style = Style::default().fg(Color::White);
 
         let mut rows: Vec<Row> = vec![];
@@ -234,7 +234,7 @@ where
         for group in self.groups() {
             for (item_idx, item) in group.iter().enumerate() {
                 let cells = vec![
-                    Cell::from(self.get_icon(item.completed)),
+                    Cell::from(self.get_icon(item.complete)),
                     Cell::from(wrap_text(item.name.clone(), 25)),
                     Cell::from(self.date_to_str(&item.date)),
                     Cell::from(item.repeats.to_string()),
@@ -254,8 +254,8 @@ where
                 .clone()
                     + 1;
 
-                let style = match item.completed {
-                    true => completed_style,
+                let style = match item.complete {
+                    true => complete_style,
                     false => default_style,
                 };
 
@@ -271,7 +271,7 @@ where
                     new_row = new_row.bottom_margin(1);
                 }
 
-                if !self.show_hidden && item.completed {
+                if !self.show_hidden && item.complete {
                     continue;
                 }
                 rows.push(new_row);

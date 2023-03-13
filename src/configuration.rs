@@ -8,27 +8,27 @@ use std::io::prelude::*;
 pub struct Settings {
     pub db_file: String,
     pub date_format: String,
-    pub show_completed: bool,
+    pub show_complete: bool,
     pub icons: Icons,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Icons {
-    completed: String,
+    complete: String,
     incomplete: String,
 }
 
 impl Icons {
     pub fn default() -> Self {
         Icons {
-            completed: "󰄴".to_string(),
+            complete: "󰄴".to_string(),
             incomplete: "󰝦".to_string(),
         }
     }
 
-    pub fn get_icon(&self, completed: bool) -> String {
-        let icon = if completed {
-            self.completed.clone()
+    pub fn get_icon(&self, complete: bool) -> String {
+        let icon = if complete {
+            self.complete.clone()
         } else {
             self.incomplete.clone()
         };
@@ -43,7 +43,7 @@ impl Settings {
         Settings {
             db_file: Self::get_default_db_file(),
             date_format: "%Y-%m-%d".to_string(),
-            show_completed: true,
+            show_complete: true,
             icons: Icons::default(),
         }
     }
@@ -87,8 +87,8 @@ impl Settings {
         utils::save_settings(&settings_path, self);
     }
 
-    pub fn set_show_completed(&mut self, show_completed: bool) {
-        self.show_completed = show_completed;
+    pub fn set_show_complete(&mut self, show_complete: bool) {
+        self.show_complete = show_complete;
         self.save_state();
     }
 }

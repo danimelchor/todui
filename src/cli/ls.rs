@@ -11,9 +11,9 @@ pub struct Args {
     /// The format to print the tasks with
     #[arg(long)]
     format: Option<Format>,
-    /// Whether to show completed tasks
+    /// Whether to show complete tasks
     #[arg(short,long)]
-    show_completed: bool,
+    show_complete: bool,
     /// Filter the tasks to show
     #[arg(long)]
     filter: Option<Filter>,
@@ -28,10 +28,10 @@ enum Filter {
 }
 
 pub fn run(app: App, args: Args) -> Result<()> {
-    let Args { format, show_completed, filter } = args;
+    let Args { format, show_complete, filter } = args;
 
-    let mut tasks_iter: Box<dyn Iterator<Item = &Task>> = if !show_completed {
-        Box::new(app.tasks.iter().filter(|&t| !t.completed))
+    let mut tasks_iter: Box<dyn Iterator<Item = &Task>> = if !show_complete {
+        Box::new(app.tasks.iter().filter(|&t| !t.complete))
     } else {
         Box::new(app.tasks.iter())
     };

@@ -41,11 +41,11 @@ impl App {
         deleted_task
     }
 
-    pub fn set_completed(&mut self, id: usize, completed: bool) -> Option<Task> {
+    pub fn set_complete(&mut self, id: usize, complete: bool) -> Option<Task> {
         let idx = self.tasks.iter().position(|t| t.id.unwrap() == id)?;
         let new_task;
-        if completed {
-            let possible_new_task = self.tasks[idx].set_completed();
+        if complete {
+            let possible_new_task = self.tasks[idx].set_complete();
             if let Some(possible_new_task) = possible_new_task {
                 new_task = self.add_task(possible_new_task);
                 self.delete_task(idx);
@@ -61,10 +61,10 @@ impl App {
         Some(new_task)
     }
 
-    pub fn toggle_completed_task(&mut self, id: usize) -> Option<Task> {
+    pub fn toggle_complete_task(&mut self, id: usize) -> Option<Task> {
         let idx = self.tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
-        let completed = self.tasks[idx].completed;
-        self.set_completed(id, !completed)
+        let complete = self.tasks[idx].complete;
+        self.set_complete(id, !complete)
     }
 
     fn get_next_id(&mut self) -> usize {
