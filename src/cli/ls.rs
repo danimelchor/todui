@@ -8,10 +8,13 @@ use super::formats::Format;
 
 #[derive(Parser)]
 pub struct Args {
+    /// The format to print the tasks with
     #[arg(long)]
     format: Option<Format>,
+    /// Whether to show completed tasks
     #[arg(short,long)]
     show_completed: bool,
+    /// Filter the tasks to show
     #[arg(long)]
     filter: Option<Filter>,
 }

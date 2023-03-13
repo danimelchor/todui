@@ -5,10 +5,13 @@ use clap::{Parser, ValueEnum};
 
 #[derive(Parser)]
 pub struct Args {
+    /// The ID of the task to modify
     #[arg(short, long)]
     id: usize,
+    /// Whether the task should be marked as complete or incomplete
     #[arg(short, long)]
     completed: CompletedStatus,
+    /// The format to print the updated task with
     #[arg(short, long)]
     format: Option<Format>,
 }

@@ -8,13 +8,18 @@ use crate::task_form::TaskForm;
 
 #[derive(Parser)]
 pub struct Args {
+    /// The name of the new task
     name: String,
+    /// The date the task is due
     #[arg(long)]
     date: Option<String>,
+    /// How often the task repeats
     #[arg(long)]
     repeats: Option<String>,
+    /// A description or url for your task
     #[arg(long)]
     description: Option<String>,
+    /// The format to display the new task with
     #[arg(long)]
     format: Option<Format>,
 }

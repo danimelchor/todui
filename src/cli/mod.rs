@@ -12,6 +12,10 @@ mod cli_utils;
 mod formats;
 
 #[derive(Parser)]
+#[command(name = "todo-rs")]
+#[command(author = "Daniel M. <dmh672@gmail.com>")]
+#[command(version = "1.0")]
+#[command(about = "A simple CLI and TUI for your todos", long_about = None)]
 struct Args {
     #[command(subcommand)]
     command: Command,
@@ -19,9 +23,13 @@ struct Args {
 
 #[derive(Parser)]
 enum Command {
+    /// Lists all the tasks
     Ls(ls::Args),
+    /// Adds a task to your todos
     Add(add::Args),
+    /// Deletes a task from your todos
     Delete(delete::Args),
+    /// Marks a task as complete or incomplete
     Complete(complete::Args),
 }
 

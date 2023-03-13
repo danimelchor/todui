@@ -5,8 +5,10 @@ use clap::Parser;
 
 #[derive(Parser)]
 pub struct Args {
+    /// The ID of the task to delete
     #[arg(short, long)]
     id: usize,
+    /// The format to print the deleted task with
     #[arg(short, long)]
     format: Option<Format>,
 }
