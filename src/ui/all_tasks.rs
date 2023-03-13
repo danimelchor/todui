@@ -9,6 +9,7 @@ use itertools::Itertools;
 use std::cell::RefCell;
 use std::cmp::max;
 use std::rc::Rc;
+use tui::text::Span;
 use tui::widgets::BorderType;
 use tui::{
     backend::Backend,
@@ -236,7 +237,7 @@ where
     fn ui(&self, f: &mut Frame<B>) {
         let rects = Layout::default()
             .constraints([Constraint::Percentage(100)].as_ref())
-            .margin(2)
+            .margin(1)
             .split(f.size());
 
         let header_cells = ["Done", "Name", "Date", "Repeats every", "Description"]
@@ -244,7 +245,7 @@ where
             .map(|h| {
                 Cell::from(*h).style(
                     Style::default()
-                        .fg(Color::LightBlue)
+                        .fg(Color::LightGreen)
                         .add_modifier(Modifier::BOLD),
                 )
             });
@@ -274,16 +275,29 @@ where
 
                 // Name cell
                 widths.name = max(widths.name, item.name.len());
-                let mut name_cell = Cell::from(item.name.clone());
-                if item.complete {
-                    name_cell =
-                        name_cell.style(Style::default().add_modifier(Modifier::CROSSED_OUT));
-                }
+                let name_cell = if !item.complete {
+                    Cell::from(item.name.clone())
+                } else {
+                    Cell::from(Span::styled(
+                        item.name.clone(),
+                        Style::default().add_modifier(Modifier::CROSSED_OUT),
+                    ))
+                };
 
                 // Description cell
                 let desc_text = item.description.clone().unwrap_or_default();
                 let desc_cell = if utils::is_hyperlink(&desc_text) {
-                    Cell::from("Link").style(Style::default().fg(Color::LightBlue))
+                    let color = match (self.current_idx, item.complete) {
+                        (Some(idx), _) if idx == current_idx => Color::LightBlue,
+                        (_, true) => Color::DarkGray,
+                        _ => Color::White,
+                    };
+                    Cell::from(Span::styled(
+                        "Open link",
+                        Style::default()
+                            .fg(color)
+                            .add_modifier(Modifier::UNDERLINED),
+                    ))
                 } else {
                     Cell::from(desc_text)
                 };
@@ -328,14 +342,8 @@ where
         ];
         let t = Table::new(rows)
             .header(header)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .title("Todos"),
-            )
             .widths(&widths)
-            .column_spacing(2);
+            .column_spacing(3);
         f.render_widget(t, rects[0]);
     }
 }
