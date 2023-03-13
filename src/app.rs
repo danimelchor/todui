@@ -48,7 +48,7 @@ impl App {
             let possible_new_task = self.tasks[idx].set_complete();
             if let Some(possible_new_task) = possible_new_task {
                 new_task = self.add_task(possible_new_task);
-                self.delete_task(idx);
+                self.delete_task(id);
             } else {
                 new_task = self.tasks[idx].clone();
             }
