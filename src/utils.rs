@@ -31,12 +31,22 @@ pub fn date_has_time(date: &DateTime<Local>) -> bool {
     true
 }
 
-pub fn date_to_str(dt: &DateTime<Local>, settings: &Settings) -> String {
+pub fn date_to_display_str(dt: &DateTime<Local>, settings: &Settings) -> String {
     let format;
     if date_has_time(&dt) {
         format = settings.date_formats.display_datetime_format.clone();
     } else {
         format = settings.date_formats.display_date_format.clone();
+    }
+    dt.format(format.as_str()).to_string()
+}
+
+pub fn date_to_input_str(dt: &DateTime<Local>, settings: &Settings) -> String {
+    let format;
+    if date_has_time(&dt) {
+        format = settings.date_formats.input_datetime_format.clone();
+    } else {
+        format = settings.date_formats.input_date_format.clone();
     }
     dt.format(format.as_str()).to_string()
 }

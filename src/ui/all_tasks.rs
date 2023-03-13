@@ -176,7 +176,7 @@ impl AllTasksPage {
     }
 
     pub fn date_to_str(&self, date: &DateTime<Local>) -> String {
-        utils::date_to_str(date, &self.app.borrow().settings)
+        utils::date_to_display_str(date, &self.app.borrow().settings)
     }
 }
 

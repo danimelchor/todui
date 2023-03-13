@@ -1,4 +1,4 @@
-use crate::{app::App, task_form::TaskForm};
+use crate::{app::App, task_form::TaskForm, utils};
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode};
 use std::{cell::RefCell, rc::Rc};
@@ -47,7 +47,7 @@ impl NewTaskPage {
         let mut task_form = TaskForm::new();
 
         task_form.name = task.name.to_string();
-        task_form.date = task.date.to_string();
+        task_form.date = utils::date_to_input_str(&task.date, &app.borrow().settings);
         task_form.repeats = task.repeats.to_string();
         task_form.description = task.description.unwrap_or("".to_string());
 
