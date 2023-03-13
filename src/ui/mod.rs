@@ -15,7 +15,6 @@ use tui::{
 
 mod all_tasks;
 mod new_task;
-mod utils;
 
 use new_task::NewTaskPage;
 use all_tasks::AllTasksPage;

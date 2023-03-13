@@ -1,4 +1,3 @@
-use super::utils::wrap_text;
 use crate::app::App;
 use crate::task::Task;
 use crate::ui::{Page, UIPage};
@@ -8,6 +7,7 @@ use chrono::{DateTime, Local};
 use crossterm::event::{self, Event, KeyCode};
 use itertools::Itertools;
 use std::cell::RefCell;
+use std::cmp::max;
 use std::rc::Rc;
 use tui::widgets::BorderType;
 use tui::{
@@ -180,6 +180,12 @@ impl AllTasksPage {
     }
 }
 
+struct Widths {
+    name: usize,
+    date: usize,
+    repeats_every: usize,
+}
+
 impl<B> Page<B> for AllTasksPage
 where
     B: Backend,
@@ -225,34 +231,41 @@ where
         let header = Row::new(header_cells).height(1).bottom_margin(1);
 
         // Rows
-        let selected_style = Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD);
+        let selected_style = Style::default()
+            .fg(Color::LightYellow)
+            .add_modifier(Modifier::BOLD);
         let complete_style = Style::default().fg(Color::DarkGray);
         let default_style = Style::default().fg(Color::White);
 
         let mut rows: Vec<Row> = vec![];
         let mut current_idx = 0;
+        let mut widths = Widths {
+            name: 0,
+            date: 4,
+            repeats_every: 13,
+        };
         for group in self.groups() {
             for (item_idx, item) in group.iter().enumerate() {
+                let date_str = self.date_to_str(&item.date);
+                let repeats_str = item.repeats.to_string();
+
+                widths.date = max(widths.date, date_str.len());
+                widths.repeats_every = max(widths.repeats_every, repeats_str.len());
+                widths.name = max(widths.name, item.name.len());
+
+                let mut name_cell = Cell::from(item.name.clone());
+                if item.complete {
+                    name_cell =
+                        name_cell.style(Style::default().add_modifier(Modifier::CROSSED_OUT));
+                }
+
                 let cells = vec![
                     Cell::from(self.get_icon(item.complete)),
-                    Cell::from(wrap_text(item.name.clone(), 25)),
-                    Cell::from(self.date_to_str(&item.date)),
-                    Cell::from(item.repeats.to_string()),
-                    Cell::from(wrap_text(
-                        item.description.clone().unwrap_or("".to_string()),
-                        35,
-                    )),
+                    name_cell,
+                    Cell::from(date_str),
+                    Cell::from(repeats_str),
+                    Cell::from(item.description.clone().unwrap_or("".to_string())),
                 ];
-
-                let height = vec![
-                    item.name.len() / 25,
-                    item.description.clone().unwrap_or("".to_string()).len() / 35,
-                ]
-                .iter()
-                .max()
-                .unwrap()
-                .clone()
-                    + 1;
 
                 let style = match item.complete {
                     true => complete_style,
@@ -265,7 +278,7 @@ where
                 };
                 current_idx += 1;
 
-                let mut new_row = Row::new(cells).height(height as u16).style(style);
+                let mut new_row = Row::new(cells).style(style);
 
                 if item_idx == group.len() - 1 {
                     new_row = new_row.bottom_margin(1);
@@ -277,6 +290,13 @@ where
                 rows.push(new_row);
             }
         }
+        let widths = [
+            Constraint::Length(4),
+            Constraint::Length(widths.name as u16),
+            Constraint::Length(widths.date as u16),
+            Constraint::Length(widths.repeats_every as u16),
+            Constraint::Percentage(100),
+        ];
         let t = Table::new(rows)
             .header(header)
             .block(
@@ -285,13 +305,7 @@ where
                     .border_type(BorderType::Rounded)
                     .title("Todos"),
             )
-            .widths(&[
-                Constraint::Length(4),
-                Constraint::Length(25),
-                Constraint::Length(20),
-                Constraint::Min(23),
-                Constraint::Length(35),
-            ])
+            .widths(&widths)
             .column_spacing(2);
         f.render_widget(t, rects[0]);
     }
