@@ -274,7 +274,7 @@ where
             let error = Paragraph::new(error.as_ref())
                 .style(Style::default().fg(Color::Red))
                 .block(Block::default().borders(Borders::ALL).title("Error"));
-            f.render_widget(error, chunks[4]);
+            f.render_widget(error, chunks[5]);
         }
     }
 }

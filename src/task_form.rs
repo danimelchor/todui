@@ -29,6 +29,10 @@ impl TaskForm {
         let repeat = Repeat::parse_from_str(&self.repeats).context("Invalid repeat format")?;
         let date = utils::parse_date(&self.date, &settings).unwrap_or(utils::get_today());
 
+        if self.name.is_empty() {
+            return Err(anyhow::anyhow!("Task name cannot be empty"));
+        }
+
         task.set_name(self.name.clone());
         task.set_date(date);
         task.set_repeats(repeat);
