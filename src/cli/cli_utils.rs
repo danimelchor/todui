@@ -11,7 +11,7 @@ pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
             if let Some(description) = &task.description {
                 println!("Description: {}", description);
             }
-            println!("complete: {}", settings.icons.get_icon(task.complete));
+            println!("complete: {}", settings.icons.get_complete_icon(task.complete));
         }
     }
 }
@@ -27,7 +27,7 @@ pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, settings: &Setting
                 let repeats = &task.repeats;
                 let complete = task.complete;
 
-                let x = settings.icons.get_icon(complete);
+                let x = settings.icons.get_complete_icon(complete);
                 println!("{} {} ({})\t{}\t{}", x, name, id, date, repeats);
             }
         }

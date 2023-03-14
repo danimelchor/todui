@@ -14,8 +14,9 @@ pub struct Settings {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Icons {
-    complete: String,
-    incomplete: String,
+    pub complete: String,
+    pub incomplete: String,
+    pub repeats: String,
 }
 
 impl Icons {
@@ -23,10 +24,11 @@ impl Icons {
         Icons {
             complete: "󰄴".to_string(),
             incomplete: "󰝦".to_string(),
+            repeats: "".to_string(),
         }
     }
 
-    pub fn get_icon(&self, complete: bool) -> String {
+    pub fn get_complete_icon(&self, complete: bool) -> String {
         let icon = if complete {
             self.complete.clone()
         } else {

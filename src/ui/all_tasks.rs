@@ -1,21 +1,21 @@
 use crate::app::App;
+use crate::repeat::Repeat;
 use crate::task::Task;
 use crate::ui::{Page, UIPage};
 use crate::utils;
 use anyhow::Result;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeZone};
 use crossterm::event::{self, Event, KeyCode};
-use itertools::Itertools;
+use itertools::{Group, Itertools};
 use std::cell::RefCell;
-use std::cmp::max;
 use std::rc::Rc;
-use tui::text::Span;
-use tui::widgets::BorderType;
+use tui::layout::Direction;
+use tui::text::{Span, Spans};
+use tui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, Wrap};
 use tui::{
     backend::Backend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, Cell, Row, Table},
     Frame, Terminal,
 };
 
@@ -125,7 +125,7 @@ impl AllTasksPage {
             .tasks
             .clone()
             .into_iter()
-            .group_by(|t| t.date)
+            .group_by(|t| t.date.date_naive())
             .into_iter()
             .map(|(_, group)| group.collect())
             .collect()
@@ -172,8 +172,15 @@ impl AllTasksPage {
         }
     }
 
-    pub fn get_icon(&self, complete: bool) -> String {
-        self.app.borrow().settings.icons.get_icon(complete)
+    pub fn get_complete_icon(&self, complete: bool) -> String {
+        self.app.borrow().settings.icons.get_complete_icon(complete)
+    }
+
+    pub fn get_repeats_icon(&self, repeats: &Repeat) -> String {
+        match repeats {
+            Repeat::Never => String::from(""),
+            _ => self.app.borrow().settings.icons.repeats.clone(),
+        }
     }
 
     pub fn date_to_str(&self, date: &DateTime<Local>) -> String {
@@ -198,12 +205,6 @@ impl AllTasksPage {
             open::that(desc_text).unwrap();
         }
     }
-}
-
-struct Widths {
-    name: usize,
-    date: usize,
-    repeats_every: usize,
 }
 
 impl<B> Page<B> for AllTasksPage
@@ -235,115 +236,109 @@ where
     }
 
     fn ui(&self, f: &mut Frame<B>) {
-        let rects = Layout::default()
-            .constraints([Constraint::Percentage(100)].as_ref())
-            .margin(1)
+        let constraints = match self.current_idx {
+            Some(_) => [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref(),
+            None => [Constraint::Percentage(100)].as_ref(),
+        };
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(constraints)
             .split(f.size());
 
-        let header_cells = ["Done", "Name", "Date", "Repeats every", "Description"]
-            .iter()
-            .map(|h| {
-                Cell::from(*h).style(
-                    Style::default()
-                        .fg(Color::LightGreen)
-                        .add_modifier(Modifier::BOLD),
-                )
-            });
-        let header = Row::new(header_cells).height(1).bottom_margin(1);
-
-        // Rows
-        let selected_style = Style::default()
-            .fg(Color::LightYellow)
-            .add_modifier(Modifier::BOLD);
-        let complete_style = Style::default().fg(Color::DarkGray);
-        let default_style = Style::default().fg(Color::White);
-
-        let mut rows: Vec<Row> = vec![];
+        // Build list
+        let mut rows = vec![];
         let mut current_idx = 0;
-        let mut widths = Widths {
-            name: 0,
-            date: 4,
-            repeats_every: 13,
-        };
         for group in self.groups() {
-            for (item_idx, item) in group.iter().enumerate() {
-                let date_str = self.date_to_str(&item.date);
-                let repeats_str = item.repeats.to_string();
+            // Group title
+            let group_date = &group[0].date.date_naive().and_hms_opt(23, 59, 59).unwrap();
+            let group_date = Local.from_local_datetime(group_date).unwrap();
+            let date_str = self.date_to_str(&group_date).to_uppercase();
+            let group_title = " ".to_string() + date_str.as_str();
+            let cell = Cell::from(Span::styled(
+                group_title,
+                Style::default()
+                    .add_modifier(Modifier::BOLD)
+                    .fg(Color::LightBlue),
+            ));
+            rows.push(Row::new(vec![cell]));
+            let pre_count = rows.len();
 
-                widths.date = max(widths.date, date_str.len());
-                widths.repeats_every = max(widths.repeats_every, repeats_str.len());
+            // All tasks in group
+            for (idx, item) in group.iter().enumerate() {
+                // Skip if hidden
+                if !self.show_hidden && item.complete {
+                    current_idx += 1;
+                    continue;
+                }
 
-                // Name cell
-                widths.name = max(widths.name, item.name.len());
-                let name_cell = if !item.complete {
-                    Cell::from(item.name.clone())
-                } else {
-                    Cell::from(Span::styled(
-                        item.name.clone(),
-                        Style::default().add_modifier(Modifier::CROSSED_OUT),
-                    ))
+                // Create string
+                let complete_icon = self.get_complete_icon(item.complete);
+                let recurring_icon = self.get_repeats_icon(&item.repeats);
+                let title = format!("{} {} {} ", complete_icon, item.name, recurring_icon);
+                let title_style = match (item.complete, self.current_idx) {
+                    (_, Some(idx)) if idx == current_idx => Style::default()
+                        .fg(Color::LightYellow)
+                        .add_modifier(Modifier::BOLD),
+                    (true, _) => Style::default().fg(Color::DarkGray),
+                    _ => Style::default().fg(Color::White),
                 };
+                let title_style = title_style.add_modifier(Modifier::BOLD);
+                let title_cell = Spans::from(Span::styled(title, title_style));
 
-                // Description cell
-                let desc_text = item.description.clone().unwrap_or_default();
-                let desc_cell = if utils::is_hyperlink(&desc_text) {
-                    let color = match (self.current_idx, item.complete) {
-                        (Some(idx), _) if idx == current_idx => Color::LightBlue,
-                        (_, true) => Color::DarkGray,
-                        _ => Color::White,
-                    };
-                    Cell::from(Span::styled(
-                        "Open link",
-                        Style::default()
-                            .fg(color)
-                            .add_modifier(Modifier::UNDERLINED),
-                    ))
-                } else {
-                    Cell::from(desc_text)
-                };
+                // Create row
+                let cell = Cell::from(title_cell);
+                let mut new_row = Row::new(vec![cell]);
 
-                let cells = vec![
-                    Cell::from(self.get_icon(item.complete)),
-                    name_cell,
-                    Cell::from(date_str),
-                    Cell::from(repeats_str),
-                    desc_cell,
-                ];
-
-                let style = match item.complete {
-                    true => complete_style,
-                    false => default_style,
-                };
-
-                let style = match self.current_idx {
-                    Some(idx) if idx == current_idx => selected_style,
-                    _ => style,
-                };
-                current_idx += 1;
-
-                let mut new_row = Row::new(cells).style(style);
-
-                if item_idx == group.len() - 1 {
+                // Add bottom margin if last item in group
+                if idx == group.len() - 1 {
                     new_row = new_row.bottom_margin(1);
                 }
 
-                if !self.show_hidden && item.complete {
-                    continue;
-                }
+                current_idx += 1;
                 rows.push(new_row);
             }
+
+            // If no tasks in group, pop the group title
+            if rows.len() == pre_count {
+                rows.pop();
+            }
         }
-        let widths = [
-            Constraint::Length(4),
-            Constraint::Length(widths.name as u16),
-            Constraint::Length(widths.date as u16),
-            Constraint::Length(widths.repeats_every as u16),
-            Constraint::Percentage(100),
-        ];
-        let t = Table::new(rows)
-            .header(header)
-            .widths(&widths)
-            .column_spacing(3);
-        f.render_widget(t, rects[0]);
+        let list = Table::new(rows)
+            .block(Block::default().borders(Borders::ALL).title("Todos"))
+            .widths(&[Constraint::Percentage(100)]);
+        f.render_widget(list, chunks[0]);
+
+        // Build task details if selected
+        if self.current_idx.is_some() {
+            let task_id = self.get_current_task_id().unwrap();
+            let task = self.app.borrow().get_task(task_id).unwrap().clone();
+
+            // Details
+            let mut details = vec![];
+
+            let date_text = self.date_to_str(&task.date);
+            let date_text = format!("Date: {}", date_text);
+            let date = Spans::from(date_text);
+            details.push(date);
+
+            let repeats_text = task.repeats.to_string();
+            if task.repeats != Repeat::Never {
+                let repeats_text = format!("Repeats: {}", repeats_text);
+                let repeats = Spans::from(repeats_text);
+                details.push(repeats);
+            }
+
+            let desc_text = task.description.clone().unwrap_or_default();
+            if !desc_text.is_empty() {
+                let desc_text = format!("Description: {}", desc_text);
+                let desc = Spans::from(desc_text);
+                details.push(desc);
+            }
+
+            let details = Paragraph::new(details)
+                .block(Block::default().borders(Borders::ALL).title("Description"))
+                .wrap(Wrap { trim: true });
+            f.render_widget(details, chunks[1]);
+        }
     }
 }
