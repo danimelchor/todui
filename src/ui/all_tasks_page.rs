@@ -203,6 +203,14 @@ impl AllTasksPage {
             open::that(desc_text).unwrap();
         }
     }
+
+    pub fn get_primary_color(&self) -> Color {
+        self.app.borrow().settings.colors.primary_color
+    }
+
+    pub fn get_accent_color(&self) -> Color {
+        self.app.borrow().settings.colors.accent_color
+    }
 }
 
 impl<B> Page<B> for AllTasksPage
@@ -228,7 +236,7 @@ where
                 group_title,
                 Style::default()
                     .add_modifier(Modifier::BOLD)
-                    .fg(Color::LightBlue),
+                    .fg(self.get_accent_color()),
             ));
             rows.push(Row::new(vec![cell]));
             let pre_count = rows.len();
@@ -247,7 +255,7 @@ where
                 let title = format!("{} {} {} ", complete_icon, item.name, recurring_icon);
                 let title_style = match (item.complete, self.current_idx) {
                     (_, Some(idx)) if idx == current_idx => Style::default()
-                        .fg(Color::LightYellow)
+                        .fg(self.get_primary_color())
                         .add_modifier(Modifier::BOLD),
                     (true, _) => Style::default().fg(Color::DarkGray),
                     _ => Style::default().fg(Color::White),
@@ -274,7 +282,7 @@ where
             }
         }
         let border_style = match focused {
-            true => Style::default().fg(Color::LightYellow),
+            true => Style::default().fg(self.get_primary_color()),
             false => Style::default(),
         };
         let border_type = match focused {

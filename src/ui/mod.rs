@@ -24,9 +24,9 @@ use task_page::NewTaskInputMode;
 
 #[macro_export]
 macro_rules! key {
-    ($keybind:expr) => {{
+    ($keybind:expr, $color:expr) => {{
         let keybind = format!("'{}'", $keybind);
-        Span::styled(keybind, Style::default().fg(Color::LightBlue))
+        Span::styled(keybind, Style::default().fg($color))
     }};
 }
 
@@ -156,7 +156,9 @@ fn render_app<B: Backend>(
     current_page: &UIPage,
 ) {
     let constraints = match (current_page, all_tasks_page.current_idx) {
-        (UIPage::AllTasks | UIPage::EditTask, Some(_)) => [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref(),
+        (UIPage::AllTasks | UIPage::EditTask, Some(_)) => {
+            [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref()
+        }
         _ => [Constraint::Percentage(100)].as_ref(),
     };
     let chunks = Layout::default()

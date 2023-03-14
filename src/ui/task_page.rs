@@ -95,7 +95,7 @@ impl TaskPage {
 
     fn border_style(&self, idx: usize) -> Style {
         if self.current_idx == idx && self.input_mode == NewTaskInputMode::Editing {
-            Style::default().fg(Color::LightYellow)
+            Style::default().fg(self.get_primary_color())
         } else {
             Style::default()
         }
@@ -120,13 +120,14 @@ impl TaskPage {
     }
 
     fn get_keybind_hint(&self) -> Spans {
-        let i = key!("i");
-        let q = key!("q");
-        let j = key!("j");
-        let k = key!("k");
-        let enter = key!("Enter");
-        let esc = key!("Esc");
-        let b = key!("b");
+        let color = self.get_secondary_color();
+        let i = key!("i", color);
+        let q = key!("q", color);
+        let j = key!("j", color);
+        let k = key!("k", color);
+        let enter = key!("enter", color);
+        let esc = key!("esc", color);
+        let b = key!("b", color);
 
         Spans::from(vec![
             Span::raw("Press "),
@@ -145,6 +146,14 @@ impl TaskPage {
             b,
             Span::raw(" to go back to the main screen. (*) Fields are required."),
         ])
+    }
+
+    pub fn get_primary_color(&self) -> Color {
+        self.app.borrow().settings.colors.primary_color
+    }
+
+    pub fn get_secondary_color(&self) -> Color {
+        self.app.borrow().settings.colors.secondary_color
     }
 }
 
@@ -171,7 +180,7 @@ where
 
         // Draw border around area
         let border_style = match focused {
-            true => Style::default().fg(Color::LightYellow),
+            true => Style::default().fg(self.get_primary_color()),
             false => Style::default(),
         };
         let border_type = match focused {
