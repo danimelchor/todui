@@ -1,22 +1,20 @@
 use crate::app::App;
 use crate::repeat::Repeat;
 use crate::task::Task;
-use crate::ui::{Page, UIPage};
+use crate::ui::Page;
 use crate::utils;
-use anyhow::Result;
 use chrono::{DateTime, Local, TimeZone};
-use crossterm::event::{self, Event, KeyCode};
-use itertools::{Group, Itertools};
+use itertools::Itertools;
 use std::cell::RefCell;
 use std::rc::Rc;
-use tui::layout::Direction;
+use tui::layout::{Direction, Rect};
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, Wrap};
+use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table};
 use tui::{
     backend::Backend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
-    Frame, Terminal,
+    Frame,
 };
 
 pub struct AllTasksPage {
@@ -211,39 +209,11 @@ impl<B> Page<B> for AllTasksPage
 where
     B: Backend,
 {
-    fn render(&mut self, terminal: &mut Terminal<B>) -> Result<UIPage> {
-        terminal.draw(|f| self.ui(f))?;
-
-        if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Char('q') => return Ok(UIPage::Quit),
-                KeyCode::Char('j') => self.next(),
-                KeyCode::Char('k') => self.prev(),
-                KeyCode::Char('x') => self.toggle_selected(),
-                KeyCode::Char('h') => self.toggle_hidden(),
-                KeyCode::Char('d') => self.delete_selected(),
-                KeyCode::Enter => self.open_selected_link(),
-                KeyCode::Char('n') => return Ok(UIPage::NewTask),
-                KeyCode::Char('e') => {
-                    let task_id = self.get_current_task_id().unwrap();
-                    return Ok(UIPage::EditTask(task_id));
-                }
-                _ => {}
-            }
-        }
-
-        Ok(UIPage::SamePage)
-    }
-
-    fn ui(&self, f: &mut Frame<B>) {
-        let constraints = match self.current_idx {
-            Some(_) => [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref(),
-            None => [Constraint::Percentage(100)].as_ref(),
-        };
+    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints(constraints)
-            .split(f.size());
+            .constraints([Constraint::Percentage(100)].as_ref())
+            .split(area);
 
         // Build list
         let mut rows = vec![];
@@ -303,42 +273,23 @@ where
                 rows.pop();
             }
         }
+        let border_style = match focused {
+            true => Style::default().fg(Color::LightYellow),
+            false => Style::default(),
+        };
+        let border_type = match focused {
+            true => BorderType::Thick,
+            false => BorderType::Plain,
+        };
         let list = Table::new(rows)
-            .block(Block::default().borders(Borders::ALL).title("Todos"))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Todos")
+                    .border_style(border_style)
+                    .border_type(border_type),
+            )
             .widths(&[Constraint::Percentage(100)]);
         f.render_widget(list, chunks[0]);
-
-        // Build task details if selected
-        if self.current_idx.is_some() {
-            let task_id = self.get_current_task_id().unwrap();
-            let task = self.app.borrow().get_task(task_id).unwrap().clone();
-
-            // Details
-            let mut details = vec![];
-
-            let date_text = self.date_to_str(&task.date);
-            let date_text = format!("Date: {}", date_text);
-            let date = Spans::from(date_text);
-            details.push(date);
-
-            let repeats_text = task.repeats.to_string();
-            if task.repeats != Repeat::Never {
-                let repeats_text = format!("Repeats: {}", repeats_text);
-                let repeats = Spans::from(repeats_text);
-                details.push(repeats);
-            }
-
-            let desc_text = task.description.clone().unwrap_or_default();
-            if !desc_text.is_empty() {
-                let desc_text = format!("Description: {}", desc_text);
-                let desc = Spans::from(desc_text);
-                details.push(desc);
-            }
-
-            let details = Paragraph::new(details)
-                .block(Block::default().borders(Borders::ALL).title("Description"))
-                .wrap(Wrap { trim: true });
-            f.render_widget(details, chunks[1]);
-        }
     }
 }

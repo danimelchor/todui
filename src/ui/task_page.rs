@@ -1,17 +1,16 @@
-use crate::{app::App, task_form::TaskForm, utils};
-use anyhow::Result;
-use crossterm::event::{self, Event, KeyCode};
+use crate::{app::App, key, task_form::TaskForm, utils};
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
-    widgets::{Block, Borders, Paragraph, Wrap},
-    Frame, Terminal,
+    text::{Span, Spans},
+    widgets::{Block, BorderType, Borders, Paragraph, Wrap},
+    Frame,
 };
 use unicode_width::UnicodeWidthStr;
 
-use super::{Page, UIPage};
+use super::Page;
 
 #[derive(PartialEq)]
 pub enum NewTaskInputMode {
@@ -19,7 +18,7 @@ pub enum NewTaskInputMode {
     Editing,
 }
 
-pub struct NewTaskPage {
+pub struct TaskPage {
     pub task_form: TaskForm,
     pub input_mode: NewTaskInputMode,
     pub editing_task: Option<usize>,
@@ -29,9 +28,9 @@ pub struct NewTaskPage {
     pub app: Rc<RefCell<App>>,
 }
 
-impl NewTaskPage {
-    pub fn new(app: Rc<RefCell<App>>) -> NewTaskPage {
-        NewTaskPage {
+impl TaskPage {
+    pub fn new(app: Rc<RefCell<App>>) -> TaskPage {
+        TaskPage {
             task_form: TaskForm::new(),
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
@@ -42,7 +41,7 @@ impl NewTaskPage {
         }
     }
 
-    pub fn new_from_task(app: Rc<RefCell<App>>, task_id: usize) -> NewTaskPage {
+    pub fn new_from_task(app: Rc<RefCell<App>>, task_id: usize) -> TaskPage {
         let task = app.borrow().get_task(task_id).unwrap().clone();
         let mut task_form = TaskForm::new();
 
@@ -51,7 +50,7 @@ impl NewTaskPage {
         task_form.repeats = task.repeats.to_string();
         task_form.description = task.description.unwrap_or("".to_string());
 
-        NewTaskPage {
+        TaskPage {
             task_form,
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
@@ -76,43 +75,27 @@ impl NewTaskPage {
 
     pub fn add_char(&mut self, c: char) {
         match self.current_idx {
-            0 => {
-                self.task_form.name.push(c);
-            }
-            1 => {
-                self.task_form.date.push(c);
-            }
-            2 => {
-                self.task_form.repeats.push(c);
-            }
-            3 => {
-                self.task_form.description.push(c);
-            }
+            0 => self.task_form.name.push(c),
+            1 => self.task_form.date.push(c),
+            2 => self.task_form.repeats.push(c),
+            3 => self.task_form.description.push(c),
             _ => {}
         };
     }
 
     pub fn remove_char(&mut self) {
         match self.current_idx {
-            0 => {
-                self.task_form.name.pop();
-            }
-            1 => {
-                self.task_form.date.pop();
-            }
-            2 => {
-                self.task_form.repeats.pop();
-            }
-            3 => {
-                self.task_form.description.pop();
-            }
-            _ => {}
+            0 => self.task_form.name.pop(),
+            1 => self.task_form.date.pop(),
+            2 => self.task_form.repeats.pop(),
+            3 => self.task_form.description.pop(),
+            _ => None,
         };
     }
 
     fn border_style(&self, idx: usize) -> Style {
         if self.current_idx == idx && self.input_mode == NewTaskInputMode::Editing {
-            Style::default().fg(Color::Yellow)
+            Style::default().fg(Color::LightYellow)
         } else {
             Style::default()
         }
@@ -135,62 +118,41 @@ impl NewTaskPage {
             .clone();
         format!("{} or {}", date_hint, datetime_hint)
     }
+
+    fn get_keybind_hint(&self) -> Spans {
+        let i = key!("i");
+        let q = key!("q");
+        let j = key!("j");
+        let k = key!("k");
+        let enter = key!("Enter");
+        let esc = key!("Esc");
+        let b = key!("b");
+
+        Spans::from(vec![
+            Span::raw("Press "),
+            i,
+            Span::raw(" to enter input mode, "),
+            q,
+            Span::raw(" to quit, "),
+            j,
+            Span::raw(" and "),
+            k,
+            Span::raw(" to move up and down, "),
+            enter,
+            Span::raw(" to save, "),
+            esc,
+            Span::raw(" to exit input mode, and "),
+            b,
+            Span::raw(" to go back to the main screen. (*) Fields are required."),
+        ])
+    }
 }
 
-impl<B> Page<B> for NewTaskPage
+impl<B> Page<B> for TaskPage
 where
     B: Backend,
 {
-    fn render(&mut self, terminal: &mut Terminal<B>) -> Result<UIPage> {
-        terminal.draw(|f| self.ui(f))?;
-
-        if let Event::Key(key) = event::read()? {
-            match self.input_mode {
-                NewTaskInputMode::Normal => match key.code {
-                    KeyCode::Char('j') => self.next_field(),
-                    KeyCode::Char('k') => self.prev_field(),
-                    KeyCode::Char('q') => {
-                        return Ok(UIPage::Quit);
-                    }
-                    KeyCode::Char('i') => {
-                        self.input_mode = NewTaskInputMode::Editing;
-                    }
-                    KeyCode::Char('b') => {
-                        return Ok(UIPage::AllTasks);
-                    }
-                    KeyCode::Enter => {
-                        let mut app = self.app.borrow_mut();
-                        let settings = &app.settings;
-                        let form_result = self.task_form.submit(&settings);
-                        match form_result {
-                            Ok(new_taks) => {
-                                if let Some(task_id) = self.editing_task {
-                                    app.delete_task(task_id);
-                                }
-                                app.add_task(new_taks);
-                                return Ok(UIPage::AllTasks);
-                            }
-                            Err(e) => {
-                                self.error = Some(e.to_string());
-                            }
-                        }
-                    }
-                    _ => {}
-                },
-                _ => match key.code {
-                    KeyCode::Esc => {
-                        self.input_mode = NewTaskInputMode::Normal;
-                    }
-                    KeyCode::Char(c) => self.add_char(c),
-                    KeyCode::Backspace => self.remove_char(),
-                    _ => {}
-                },
-            }
-        }
-        Ok(UIPage::SamePage)
-    }
-
-    fn ui(&self, f: &mut Frame<B>) {
+    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(2)
@@ -205,13 +167,28 @@ where
                 ]
                 .as_ref(),
             )
-            .split(f.size());
+            .split(area);
+
+        // Draw border around area
+        let border_style = match focused {
+            true => Style::default().fg(Color::LightYellow),
+            false => Style::default(),
+        };
+        let border_type = match focused {
+            true => BorderType::Thick,
+            false => BorderType::Plain,
+        };
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .title("Task")
+            .border_style(border_style)
+            .border_type(border_type);
+        f.render_widget(block, area);
 
         // Keybinds description paragraph
-        let keybinds = Paragraph::new(
-        "Press 'i' to enter input mode, 'q' to quit, 'j' and 'k' to move up and down, 'Enter' to save, 'Esc' to exit input mode, and 'b' to go back to the main screen. (*) Fields are required."
-    ).alignment(Alignment::Center)
-        .wrap(Wrap { trim: true });
+        let keybinds = Paragraph::new(self.get_keybind_hint())
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true });
         f.render_widget(keybinds, chunks[0]);
 
         // Name
@@ -245,28 +222,34 @@ where
         let curr_text = self.task_form.description.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(3))
-            .block(Block::default().borders(Borders::ALL).title("Description or URL"));
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Description or URL"),
+            );
         f.render_widget(input, chunks[4]);
 
         // Place cursor
-        match self.current_idx {
-            0 => f.set_cursor(
-                chunks[1].x + self.task_form.name.width() as u16 + 1,
-                chunks[1].y + 1,
-            ),
-            1 => f.set_cursor(
-                chunks[2].x + self.task_form.date.width() as u16 + 1,
-                chunks[2].y + 1,
-            ),
-            2 => f.set_cursor(
-                chunks[3].x + self.task_form.repeats.width() as u16 + 1,
-                chunks[3].y + 1,
-            ),
-            3 => f.set_cursor(
-                chunks[4].x + self.task_form.description.width() as u16 + 1,
-                chunks[4].y + 1,
-            ),
-            _ => {}
+        if focused {
+            match self.current_idx {
+                0 => f.set_cursor(
+                    chunks[1].x + self.task_form.name.width() as u16 + 1,
+                    chunks[1].y + 1,
+                ),
+                1 => f.set_cursor(
+                    chunks[2].x + self.task_form.date.width() as u16 + 1,
+                    chunks[2].y + 1,
+                ),
+                2 => f.set_cursor(
+                    chunks[3].x + self.task_form.repeats.width() as u16 + 1,
+                    chunks[3].y + 1,
+                ),
+                3 => f.set_cursor(
+                    chunks[4].x + self.task_form.description.width() as u16 + 1,
+                    chunks[4].y + 1,
+                ),
+                _ => {}
+            }
         }
 
         // Error message
