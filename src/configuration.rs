@@ -1,5 +1,5 @@
 use crate::utils;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use crossterm::event::KeyCode;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -15,14 +15,6 @@ pub struct Icons {
 }
 
 impl Icons {
-    pub fn default() -> Self {
-        Icons {
-            complete: "󰄴".to_string(),
-            incomplete: "󰝦".to_string(),
-            repeats: "".to_string(),
-        }
-    }
-
     pub fn get_complete_icon(&self, complete: bool) -> String {
         let icon = if complete {
             self.complete.clone()
@@ -35,11 +27,21 @@ impl Icons {
     }
 }
 
+impl Default for Icons {
+    fn default() -> Self {
+        Icons {
+            complete: "󰄴".to_string(),
+            incomplete: "󰝦".to_string(),
+            repeats: "".to_string(),
+        }
+    }
+}
+
 pub fn serialize_color<S>(color: &tui::style::Color, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
-    let color = Color::from_tui_color(color.clone());
+    let color = Color::from_tui_color(*color);
     color.serialize(serializer)
 }
 
@@ -49,52 +51,6 @@ where
 {
     let color = Color::deserialize(deserializer)?;
     Ok(color.to_tui_color())
-}
-
-pub fn deserialize_key<'de, D>(deserializer: D) -> Result<KeyCode, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    match s.to_lowercase().as_ref() {
-        "esc" => Ok(KeyCode::Esc),
-        "backspace" => Ok(KeyCode::Backspace),
-        "left" => Ok(KeyCode::Left),
-        "right" => Ok(KeyCode::Right),
-        "up" => Ok(KeyCode::Up),
-        "down" => Ok(KeyCode::Down),
-        "home" => Ok(KeyCode::Home),
-        "end" => Ok(KeyCode::End),
-        "delete" => Ok(KeyCode::Delete),
-        "insert" => Ok(KeyCode::Insert),
-        "pageup" => Ok(KeyCode::PageUp),
-        "pagedown" => Ok(KeyCode::PageDown),
-        "f1" => Ok(KeyCode::F(1)),
-        "f2" => Ok(KeyCode::F(2)),
-        "f3" => Ok(KeyCode::F(3)),
-        "f4" => Ok(KeyCode::F(4)),
-        "f5" => Ok(KeyCode::F(5)),
-        "f6" => Ok(KeyCode::F(6)),
-        "f7" => Ok(KeyCode::F(7)),
-        "f8" => Ok(KeyCode::F(8)),
-        "f9" => Ok(KeyCode::F(9)),
-        "f10" => Ok(KeyCode::F(10)),
-        "f11" => Ok(KeyCode::F(11)),
-        "f12" => Ok(KeyCode::F(12)),
-        "space" => Ok(KeyCode::Char(' ')),
-        "tab" => Ok(KeyCode::Tab),
-        "enter" => Ok(KeyCode::Enter),
-        c if c.len() == 1 => Ok(KeyCode::Char(c.chars().next().unwrap())),
-        _ => Err(serde::de::Error::custom("Invalid key")),
-    }
-}
-
-pub fn serialize_key<S>(key: &KeyCode, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let key = KeyBindings::key_to_str(key);
-    key.serialize(serializer)
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -118,90 +74,6 @@ pub enum Color {
     White,
     Rgb(u8, u8, u8),
     Indexed(u8),
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct KeyBindings {
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub quit: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub down: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub up: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub complete_task: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub toggle_completed_tasks: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub delete_task: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub new_task: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub edit_task: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub save_changes: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub enter_insert_mode: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub enter_normal_mode: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub go_back: KeyCode,
-    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub open_link: KeyCode,
-}
-
-impl KeyBindings {
-    pub fn default() -> Self {
-        Self {
-            quit: KeyCode::Char('q'),
-            down: KeyCode::Char('j'),
-            up: KeyCode::Char('k'),
-            complete_task: KeyCode::Char('x'),
-            toggle_completed_tasks: KeyCode::Char('h'),
-            delete_task: KeyCode::Char('d'),
-            new_task: KeyCode::Char('n'),
-            edit_task: KeyCode::Char('e'),
-            save_changes: KeyCode::Enter,
-            enter_insert_mode: KeyCode::Char('i'),
-            enter_normal_mode: KeyCode::Esc,
-            go_back: KeyCode::Char('b'),
-            open_link: KeyCode::Enter,
-        }
-    }
-
-    pub fn key_to_str(key: &KeyCode) -> String {
-        match key {
-            KeyCode::Esc => "Esc".to_string(),
-            KeyCode::Backspace => "Backspace".to_string(),
-            KeyCode::Left => "Left".to_string(),
-            KeyCode::Right => "Right".to_string(),
-            KeyCode::Up => "Up".to_string(),
-            KeyCode::Down => "Down".to_string(),
-            KeyCode::Home => "Home".to_string(),
-            KeyCode::End => "End".to_string(),
-            KeyCode::Delete => "Delete".to_string(),
-            KeyCode::Insert => "Insert".to_string(),
-            KeyCode::PageUp => "PageUp".to_string(),
-            KeyCode::PageDown => "PageDown".to_string(),
-            KeyCode::F(1) => "F1".to_string(),
-            KeyCode::F(2) => "F2".to_string(),
-            KeyCode::F(3) => "F3".to_string(),
-            KeyCode::F(4) => "F4".to_string(),
-            KeyCode::F(5) => "F5".to_string(),
-            KeyCode::F(6) => "F6".to_string(),
-            KeyCode::F(7) => "F7".to_string(),
-            KeyCode::F(8) => "F8".to_string(),
-            KeyCode::F(9) => "F9".to_string(),
-            KeyCode::F(10) => "F10".to_string(),
-            KeyCode::F(11) => "F11".to_string(),
-            KeyCode::F(12) => "F12".to_string(),
-            KeyCode::Char(' ') => "Space".to_string(),
-            KeyCode::Tab => "Tab".to_string(),
-            KeyCode::Enter => "Enter".to_string(),
-            KeyCode::Char(c) => c.to_string(),
-            _ => "Unknown".to_string(),
-        }
-    }
 }
 
 impl Color {
@@ -250,6 +122,137 @@ impl Color {
             tui::style::Color::White => Color::White,
             tui::style::Color::Rgb(r, g, b) => Color::Rgb(r, g, b),
             tui::style::Color::Indexed(i) => Color::Indexed(i),
+        }
+    }
+}
+
+pub fn deserialize_key<'de, D>(deserializer: D) -> Result<KeyCode, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    match s.to_lowercase().as_ref() {
+        "esc" => Ok(KeyCode::Esc),
+        "backspace" => Ok(KeyCode::Backspace),
+        "left" => Ok(KeyCode::Left),
+        "right" => Ok(KeyCode::Right),
+        "up" => Ok(KeyCode::Up),
+        "down" => Ok(KeyCode::Down),
+        "home" => Ok(KeyCode::Home),
+        "end" => Ok(KeyCode::End),
+        "delete" => Ok(KeyCode::Delete),
+        "insert" => Ok(KeyCode::Insert),
+        "pageup" => Ok(KeyCode::PageUp),
+        "pagedown" => Ok(KeyCode::PageDown),
+        "f1" => Ok(KeyCode::F(1)),
+        "f2" => Ok(KeyCode::F(2)),
+        "f3" => Ok(KeyCode::F(3)),
+        "f4" => Ok(KeyCode::F(4)),
+        "f5" => Ok(KeyCode::F(5)),
+        "f6" => Ok(KeyCode::F(6)),
+        "f7" => Ok(KeyCode::F(7)),
+        "f8" => Ok(KeyCode::F(8)),
+        "f9" => Ok(KeyCode::F(9)),
+        "f10" => Ok(KeyCode::F(10)),
+        "f11" => Ok(KeyCode::F(11)),
+        "f12" => Ok(KeyCode::F(12)),
+        "space" => Ok(KeyCode::Char(' ')),
+        "tab" => Ok(KeyCode::Tab),
+        "enter" => Ok(KeyCode::Enter),
+        c if c.len() == 1 => Ok(KeyCode::Char(c.chars().next().unwrap())),
+        _ => Err(serde::de::Error::custom("Invalid key")),
+    }
+}
+
+pub fn serialize_key<S>(key: &KeyCode, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let key = KeyBindings::key_to_str(key);
+    key.serialize(serializer)
+}
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct KeyBindings {
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub quit: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub down: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub up: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub complete_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub toggle_completed_tasks: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub delete_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub new_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub edit_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub save_changes: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub enter_insert_mode: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub enter_normal_mode: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub go_back: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub open_link: KeyCode,
+}
+
+impl KeyBindings {
+    pub fn key_to_str(key: &KeyCode) -> String {
+        match key {
+            KeyCode::Esc => "Esc".to_string(),
+            KeyCode::Backspace => "Backspace".to_string(),
+            KeyCode::Left => "Left".to_string(),
+            KeyCode::Right => "Right".to_string(),
+            KeyCode::Up => "Up".to_string(),
+            KeyCode::Down => "Down".to_string(),
+            KeyCode::Home => "Home".to_string(),
+            KeyCode::End => "End".to_string(),
+            KeyCode::Delete => "Delete".to_string(),
+            KeyCode::Insert => "Insert".to_string(),
+            KeyCode::PageUp => "PageUp".to_string(),
+            KeyCode::PageDown => "PageDown".to_string(),
+            KeyCode::F(1) => "F1".to_string(),
+            KeyCode::F(2) => "F2".to_string(),
+            KeyCode::F(3) => "F3".to_string(),
+            KeyCode::F(4) => "F4".to_string(),
+            KeyCode::F(5) => "F5".to_string(),
+            KeyCode::F(6) => "F6".to_string(),
+            KeyCode::F(7) => "F7".to_string(),
+            KeyCode::F(8) => "F8".to_string(),
+            KeyCode::F(9) => "F9".to_string(),
+            KeyCode::F(10) => "F10".to_string(),
+            KeyCode::F(11) => "F11".to_string(),
+            KeyCode::F(12) => "F12".to_string(),
+            KeyCode::Char(' ') => "Space".to_string(),
+            KeyCode::Tab => "Tab".to_string(),
+            KeyCode::Enter => "Enter".to_string(),
+            KeyCode::Char(c) => c.to_string(),
+            _ => "Unknown".to_string(),
+        }
+    }
+}
+
+impl Default for KeyBindings {
+    fn default() -> Self {
+        Self {
+            quit: KeyCode::Char('q'),
+            down: KeyCode::Char('j'),
+            up: KeyCode::Char('k'),
+            complete_task: KeyCode::Char('x'),
+            toggle_completed_tasks: KeyCode::Char('h'),
+            delete_task: KeyCode::Char('d'),
+            new_task: KeyCode::Char('n'),
+            edit_task: KeyCode::Char('e'),
+            save_changes: KeyCode::Enter,
+            enter_insert_mode: KeyCode::Char('i'),
+            enter_normal_mode: KeyCode::Esc,
+            go_back: KeyCode::Char('b'),
+            open_link: KeyCode::Enter,
         }
     }
 }
@@ -322,7 +325,8 @@ impl Settings {
     }
 
     pub fn save_state(&self) {
-        let settings_path = SettingsBuilder::get_settings_path().expect("Settings file should exist.");
+        let settings_path =
+            SettingsBuilder::get_settings_path().expect("Settings file should exist.");
         utils::save_settings(&settings_path, self);
     }
 }
@@ -337,16 +341,6 @@ pub struct SettingsBuilder {
 }
 
 impl SettingsBuilder {
-    pub fn default() -> Self {
-        SettingsBuilder {
-            show_complete: true,
-            icons: Icons::default(),
-            date_formats: DateFormats::new(),
-            colors: Colors::default(),
-            keybindings: KeyBindings::default(),
-        }
-    }
-
     pub fn default_path() -> Result<PathBuf> {
         match dirs::home_dir() {
             Some(path) => {
@@ -354,7 +348,7 @@ impl SettingsBuilder {
 
                 let config_dir = path.join(".config");
                 if !path.exists() {
-                    fs::create_dir_all(&path)?;
+                    fs::create_dir_all(path)?;
                 }
 
                 let todo_dir = config_dir.join("todo-rs");
@@ -372,10 +366,7 @@ impl SettingsBuilder {
         let path = default_path.join("tasks.json");
 
         if !path.exists() {
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(&path)?;
+            let mut file = OpenOptions::new().write(true).create(true).open(&path)?;
             writeln!(file, "[]")?;
         }
 
@@ -404,11 +395,25 @@ impl SettingsBuilder {
     }
 }
 
+impl Default for SettingsBuilder {
+    fn default() -> Self {
+        SettingsBuilder {
+            show_complete: true,
+            icons: Icons::default(),
+            date_formats: DateFormats::new(),
+            colors: Colors::default(),
+            keybindings: KeyBindings::default(),
+        }
+    }
+}
+
 pub fn get_configuration() -> Settings {
     let settings_path = SettingsBuilder::get_settings_path().expect("Settings file should exist.");
-    let file = OpenOptions::new().read(true).open(&settings_path).expect("Could not open settings file");
-    let settings = serde_json::from_reader(file).expect("Could not parse settings file");
-    settings
+    let file = OpenOptions::new()
+        .read(true)
+        .open(settings_path)
+        .expect("Could not open settings file");
+    serde_json::from_reader(file).expect("Could not parse settings file")
 }
 
 pub fn get_db_file() -> PathBuf {

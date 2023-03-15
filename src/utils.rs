@@ -33,22 +33,20 @@ pub fn date_has_time(date: &DateTime<Local>) -> bool {
 }
 
 pub fn date_to_display_str(dt: &DateTime<Local>, settings: &Settings) -> String {
-    let format;
-    if date_has_time(&dt) {
-        format = settings.date_formats.display_datetime_format.clone();
+    let format = if date_has_time(dt) {
+        settings.date_formats.display_datetime_format.clone()
     } else {
-        format = settings.date_formats.display_date_format.clone();
-    }
+        settings.date_formats.display_date_format.clone()
+    };
     dt.format(format.as_str()).to_string()
 }
 
 pub fn date_to_input_str(dt: &DateTime<Local>, settings: &Settings) -> String {
-    let format;
-    if date_has_time(&dt) {
-        format = settings.date_formats.input_datetime_format.clone();
+    let format = if date_has_time(dt) {
+        settings.date_formats.input_datetime_format.clone()
     } else {
-        format = settings.date_formats.input_date_format.clone();
-    }
+        settings.date_formats.input_date_format.clone()
+    };
     dt.format(format.as_str()).to_string()
 }
 
@@ -57,17 +55,16 @@ pub fn get_today() -> DateTime<Local> {
     Local.from_local_datetime(&today).unwrap()
 }
 
-pub fn parse_date(s: &String, settings: &Settings) -> Result<DateTime<Local>> {
+pub fn parse_date(s: &str, settings: &Settings) -> Result<DateTime<Local>> {
     let datetime_format = settings.date_formats.input_datetime_format.as_str();
     let date_format = settings.date_formats.input_date_format.as_str();
 
-    let attempt_datetime = Local.datetime_from_str(s.as_str(), datetime_format);
-    let attempt_date = NaiveDate::parse_from_str(s.as_str(), date_format);
+    let attempt_datetime = Local.datetime_from_str(s, datetime_format);
+    let attempt_date = NaiveDate::parse_from_str(s, date_format);
 
-    if attempt_datetime.is_ok() {
-        Ok(attempt_datetime.unwrap())
-    } else if attempt_date.is_ok() {
-        let date = attempt_date.unwrap();
+    if let Ok(datetime) = attempt_datetime {
+        Ok(datetime)
+    } else if let Ok(date) = attempt_date {
         let datetime = date.and_hms_opt(23, 59, 59).unwrap();
         Ok(Local.from_local_datetime(&datetime).unwrap())
     } else {

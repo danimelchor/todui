@@ -1,4 +1,4 @@
-use crate::{app::App, key, task_form::TaskForm, utils, configuration::KeyBindings};
+use crate::{app::App, key, task_form::TaskForm, configuration::KeyBindings};
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
@@ -31,7 +31,7 @@ pub struct TaskPage {
 impl TaskPage {
     pub fn new(app: Rc<RefCell<App>>) -> TaskPage {
         TaskPage {
-            task_form: TaskForm::new(),
+            task_form: TaskForm::default(),
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
             error: None,
@@ -43,13 +43,7 @@ impl TaskPage {
 
     pub fn new_from_task(app: Rc<RefCell<App>>, task_id: usize) -> TaskPage {
         let task = app.borrow().get_task(task_id).unwrap().clone();
-        let mut task_form = TaskForm::new();
-
-        task_form.name = task.name.to_string();
-        task_form.date = utils::date_to_input_str(&task.date, &app.borrow().settings);
-        task_form.repeats = task.repeats.to_string();
-        task_form.description = task.description.unwrap_or("".to_string());
-        task_form.url = task.url.unwrap_or("".to_string());
+        let task_form = TaskForm::from_task(&task, &app.borrow().settings);
 
         TaskPage {
             task_form,

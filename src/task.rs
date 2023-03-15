@@ -33,18 +33,6 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn new() -> Task {
-        Task {
-            id: None,
-            name: "".to_string(),
-            date: Local::now(),
-            repeats: Repeat::Never,
-            description: None,
-            url: None,
-            complete: false,
-        }
-    }
-
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
@@ -114,6 +102,20 @@ impl Task {
         match self.id {
             Some(id) => id,
             None => panic!("Tasks should always have an ID once added"),
+        }
+    }
+}
+
+impl Default for Task {
+    fn default() -> Self {
+        Self {
+            id: None,
+            name: "".to_string(),
+            date: Local::now(),
+            repeats: Repeat::Never,
+            description: None,
+            url: None,
+            complete: false,
         }
     }
 }

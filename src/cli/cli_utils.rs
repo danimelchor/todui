@@ -6,7 +6,7 @@ pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
         Some(Format::Json) => println!("{}", serde_json::to_string_pretty(&task).unwrap()),
         _ => {
             println!("{}\t{}", task.id.unwrap(), task.name);
-            println!("Date:\t{}", utils::date_to_display_str(&task.date, &settings));
+            println!("Date:\t{}", utils::date_to_display_str(&task.date, settings));
             println!("Repeats:\t{:}", task.repeats);
             if let Some(description) = &task.description {
                 println!("Description:\t{}", description);
@@ -22,7 +22,7 @@ pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, show_descriptions:
         Some(Format::Json) => println!("{}", serde_json::to_string_pretty(&tasks).unwrap()),
         _ => {
             let longest_name = tasks.iter().map(|t| t.name.len()).max().unwrap_or(0);
-            let longest_date = tasks.iter().map(|t| utils::date_to_display_str(&t.date, &settings).len()).max().unwrap_or(0);
+            let longest_date = tasks.iter().map(|t| utils::date_to_display_str(&t.date, settings).len()).max().unwrap_or(0);
             let longest_repeat = tasks.iter().map(|t| t.repeats.to_string().len()).max().unwrap_or(0);
 
 
@@ -50,7 +50,7 @@ pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, show_descriptions:
                 let width = longest_name + 10;
                 print!("{:width$}  ", name_id, width = width);
 
-                let date = utils::date_to_display_str(&task.date, &settings);
+                let date = utils::date_to_display_str(&task.date, settings);
                 print!("{:width$}  ", date, width = longest_date);
 
                 let repeats = &task.repeats;

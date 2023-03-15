@@ -2,7 +2,7 @@ use crate::day_of_week::DayOfWeek;
 use anyhow::Result;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum Repeat {
@@ -26,7 +26,7 @@ impl Repeat {
                 let days: Vec<Result<DayOfWeek>> = s
                     .split(',')
                     .map(|s| s.trim())
-                    .map(|s| DayOfWeek::from_str(s))
+                    .map(DayOfWeek::from_str)
                     .collect();
                 if days.iter().any(|d| d.is_err()) {
                     return Err(anyhow::anyhow!("Invalid day of the week"));

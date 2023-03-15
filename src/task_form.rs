@@ -6,6 +6,7 @@ use crate::repeat::Repeat;
 use crate::task::Task;
 use crate::utils;
 
+#[derive(Default)]
 pub struct TaskForm {
     pub name: String,
     pub date: String,
@@ -15,21 +16,20 @@ pub struct TaskForm {
 }
 
 impl TaskForm {
-    pub fn new() -> TaskForm {
-        TaskForm {
-            name: "".to_string(),
-            date: "".to_string(),
-            repeats: "".to_string(),
-            description: "".to_string(),
-            url: "".to_string(),
+    pub fn from_task(task: &Task, settings: &Settings) -> Self {
+        Self {
+            name: task.name.to_string(),
+            date: utils::date_to_input_str(&task.date, settings),
+            repeats: task.repeats.to_string(),
+            description: task.description.clone().unwrap_or_default(),
+            url: task.url.clone().unwrap_or_default(),
         }
     }
-
     pub fn submit(&mut self, settings: &Settings) -> Result<Task> {
-        let mut task = Task::new();
+        let mut task = Task::default();
 
         let repeat = Repeat::parse_from_str(&self.repeats).context("Invalid repeat format")?;
-        let date = utils::parse_date(&self.date, &settings).unwrap_or(utils::get_today());
+        let date = utils::parse_date(&self.date, settings).unwrap_or(utils::get_today());
 
         if self.name.is_empty() {
             return Err(anyhow::anyhow!("Task name cannot be empty"));

@@ -19,7 +19,7 @@ impl App {
 
     pub fn save_state(&mut self) {
         self.tasks.sort_by(|a, b| a.date.cmp(&b.date));
-        utils::save_tasks(get_db_file(), &self);
+        utils::save_tasks(get_db_file(), self);
     }
 
     pub fn get_task(&self, id: usize) -> Option<&Task> {

@@ -102,7 +102,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         task_page = TaskPage::new(Rc::clone(&app));
                     }
                     _ if code == keybindings.edit_task => {
-                        if let Some(_) = all_tasks_page.current_idx {
+                        if all_tasks_page.current_idx.is_some() {
                             current_page = UIPage::EditTask;
                         }
                     }
@@ -122,7 +122,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         _ if code == keybindings.save_changes => {
                             let mut app = task_page.app.borrow_mut();
                             let settings = &app.settings;
-                            let form_result = task_page.task_form.submit(&settings);
+                            let form_result = task_page.task_form.submit(settings);
                             match form_result {
                                 Ok(new_taks) => {
                                     if let Some(task_id) = task_page.editing_task {

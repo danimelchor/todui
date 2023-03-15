@@ -34,11 +34,7 @@ impl AllTasksPage {
     }
 
     pub fn get_current_task_id(&self) -> Option<usize> {
-        if self.current_idx.is_none() {
-            return None;
-        }
-
-        let idx = self.current_idx.unwrap();
+        let idx = self.current_idx?;
         Some(self.app.borrow().tasks[idx].id.unwrap())
     }
 
