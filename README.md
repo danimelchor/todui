@@ -2,7 +2,6 @@
 
 ## TUI
 
-
 https://user-images.githubusercontent.com/24496843/225178561-0f81d039-dba5-4cb0-a282-e0e777e5cc2e.mov
 
 
@@ -110,3 +109,6 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 | -------- | ---------- |
 | `Esc` | Exit insert mode / go back to normal mode |
 
+## Why the CLI?
+
+CLI access to your todos introduces a programmatic way to modify or display your todos in comfortable places. For developers, this might mean displaying your todos when you open your terminal, as notifications, or even or your menu bar. For me, the menu bar was what drove me to create this project. I have used the app Cron for a bit and loved being able to see my events for that day without opening anything. So I created my own SketchyBar widget to interact with my todos:
