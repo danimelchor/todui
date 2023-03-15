@@ -35,7 +35,7 @@ impl TaskPage {
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
             error: None,
-            num_fields: 4,
+            num_fields: 5,
             editing_task: None,
             app,
         }
