@@ -1,6 +1,6 @@
 use crate::{day_of_week::DayOfWeek, repeat::Repeat};
 use anyhow::Result;
-use chrono::{Datelike, Days, Local, Months, DateTime, TimeZone};
+use chrono::{Datelike, Days, Local, Months, DateTime, TimeZone, Duration};
 use serde::{Deserialize, Serialize};
 
 pub fn serialize_dt<S>(date: &DateTime<Local>, serializer: S) -> Result<S::Ok, S::Error>
@@ -65,20 +65,20 @@ impl Task {
             Repeat::DaysOfWeek(days) => {
                 let mut new_date = None;
                 for i in 1..=7 {
-                    let day = self.date.checked_add_days(Days::new(i)).unwrap();
+                    let day = self.date + Duration::days(i);
                     let weekday = DayOfWeek::from_chrono(day.weekday());
                     if days.contains(&weekday) {
-                        new_date = self.date.checked_add_days(Days::new(i));
+                        new_date = Some(day);
                         break;
                     }
                 }
                 new_date
             }
             Repeat::Never => None,
-            Repeat::Daily => self.date.checked_add_days(Days::new(1)),
-            Repeat::Weekly => self.date.checked_add_days(Days::new(7)),
-            Repeat::Monthly => self.date.checked_add_months(Months::new(1)),
-            Repeat::Yearly => self.date.checked_add_months(Months::new(12)),
+            Repeat::Daily => Some(self.date + Days::new(1)),
+            Repeat::Weekly => Some(self.date + Days::new(7)),
+            Repeat::Monthly => Some(self.date + Months::new(1)), 
+            Repeat::Yearly => Some(self.date + Months::new(12)),
         };
 
         if let Some(date) = date {
