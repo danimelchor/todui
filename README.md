@@ -48,7 +48,6 @@ The default config is the following:
 
 ```json
 {
-  "db_file": "/Users/danielmelchor/.config/todo-rs/tasks.json",
   "date_formats": {
     "display_date_format": "%a %b %-d",
     "display_datetime_format": "%a %b %-d at %-H:%M",
