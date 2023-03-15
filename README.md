@@ -64,16 +64,16 @@ The default config is the following:
 **List of tasks panel**
 
 | Keybinds | Description |
-| --------------------- | 
-| q | Quits the application | 
-| j | Moves down one task |
-| k | Moves up one task |
-| x | Marks the task as completed | 
-| h | Toggles hiding completed tasks |
-| d | Deletes the selected task forever|
-| Enter | If the task has an associated link, it opens it in your preferred browser |
-| n | Opens the new task page |
-| e | Focuses the task editing panel |
+| -------- | ---------- | 
+| `q` | Quits the application | 
+| `j` | Moves down one task |
+| `k` | Moves up one task |
+| `x` | Marks the task as completed | 
+| `h` | Toggles hiding completed tasks |
+| `d` | Deletes the selected task forever|
+| `Enter` | If the task has an associated link, it opens it in your preferred browser |
+| `n` | Opens the new task page |
+| `e` | Focuses the task editing panel |
 
 **Editing/new task panel**
 
@@ -81,20 +81,20 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 
 *Normal mode*
 
-| Keybinds | Description|
-| --------------------- |
-| j | Move down to the next field |
-| k | Move up to the previous field |
-| q | Quit the application |
-| i | Enter insert mode |
-| b | Go back to the list of tasks panel |
-| Enter | Save changes or add the new task |
+| Keybinds | Description |
+| -------- | ---------- |
+| `j` | Move down to the next field |
+| `k` | Move up to the previous field |
+| `q` | Quit the application |
+| `i` | Enter insert mode |
+| `b` | Go back to the list of tasks panel |
+| `Enter` | Save changes or add the new task |
 
 *Insert mode*
 
-| Keybinds | Description|
-| --------------------- |
-| Esc | Exit insert mode / go back to normal mode |
+| Keybinds | Description |
+| -------- | ---------- |
+| `Esc` | Exit insert mode / go back to normal mode |
 
 ## Installation
 
