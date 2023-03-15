@@ -11,6 +11,7 @@ pub struct TaskForm {
     pub date: String,
     pub repeats: String,
     pub description: String,
+    pub url: String,
 }
 
 impl TaskForm {
@@ -20,6 +21,7 @@ impl TaskForm {
             date: "".to_string(),
             repeats: "".to_string(),
             description: "".to_string(),
+            url: "".to_string(),
         }
     }
 
@@ -36,7 +38,12 @@ impl TaskForm {
         task.set_name(self.name.clone());
         task.set_date(date);
         task.set_repeats(repeat);
-        task.set_description(self.description.clone());
+        if !self.description.is_empty() {
+            task.set_description(self.description.clone());
+        }
+        if !self.url.is_empty() {
+            task.set_url(self.url.clone());
+        }
 
         Ok(task)
     }

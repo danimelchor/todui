@@ -191,17 +191,15 @@ impl AllTasksPage {
         }
 
         let task_id = self.get_current_task_id().unwrap();
-        let desc_text = self
+        let url = self
             .app
             .borrow()
             .get_task(task_id)
             .unwrap()
-            .description
+            .url
             .clone()
             .unwrap_or_default();
-        if utils::is_hyperlink(&desc_text) {
-            open::that(desc_text).unwrap();
-        }
+        open::that(url).unwrap();
     }
 
     pub fn get_primary_color(&self) -> Color {

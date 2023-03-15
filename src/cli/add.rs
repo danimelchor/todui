@@ -19,6 +19,9 @@ pub struct Args {
     /// A description or url for your task
     #[arg(long)]
     description: Option<String>,
+    /// A url for your task
+    #[arg(long)]
+    url: Option<String>,
     /// The format to display the new task with
     #[arg(long)]
     format: Option<Format>,
@@ -31,12 +34,14 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         date,
         repeats,
         description,
+        url,
     } = args;
     let mut task_form = TaskForm {
         name,
         date: date.unwrap_or("".to_string()),
         repeats: repeats.unwrap_or("".to_string()),
         description: description.unwrap_or("".to_string()),
+        url: url.unwrap_or("".to_string()),
     };
     let task = task_form.submit(&app.settings)?;
     let task = app.add_task(task);

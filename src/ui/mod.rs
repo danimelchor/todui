@@ -71,7 +71,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
 
     loop {
         terminal.draw(|f| render_app(f, &mut all_tasks_page, &mut task_page, &current_page))?;
-        let keybindings = &app.borrow().settings.keybindings;
+        let keybindings = &app.borrow().settings.keybindings.clone();
 
         if let Event::Key(key) = event::read()? {
             let code = key.code;

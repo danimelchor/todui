@@ -1,6 +1,6 @@
 use crate::{day_of_week::DayOfWeek, repeat::Repeat};
 use anyhow::Result;
-use chrono::{Datelike, Days, Local, Months, DateTime, TimeZone, Duration};
+use chrono::{DateTime, Datelike, Days, Duration, Local, Months, TimeZone};
 use serde::{Deserialize, Serialize};
 
 pub fn serialize_dt<S>(date: &DateTime<Local>, serializer: S) -> Result<S::Ok, S::Error>
@@ -28,6 +28,7 @@ pub struct Task {
     pub date: DateTime<Local>,
     pub repeats: Repeat,
     pub description: Option<String>,
+    pub url: Option<String>,
     pub complete: bool,
 }
 
@@ -39,6 +40,7 @@ impl Task {
             date: Local::now(),
             repeats: Repeat::Never,
             description: None,
+            url: None,
             complete: false,
         }
     }
@@ -59,6 +61,10 @@ impl Task {
         self.description = Some(description);
     }
 
+    pub fn set_url(&mut self, url: String) {
+        self.url = Some(url);
+    }
+
     pub fn set_complete(&mut self) -> Option<Task> {
         self.complete = true;
         let date = match &self.repeats {
@@ -77,7 +83,7 @@ impl Task {
             Repeat::Never => None,
             Repeat::Daily => Some(self.date + Days::new(1)),
             Repeat::Weekly => Some(self.date + Days::new(7)),
-            Repeat::Monthly => Some(self.date + Months::new(1)), 
+            Repeat::Monthly => Some(self.date + Months::new(1)),
             Repeat::Yearly => Some(self.date + Months::new(12)),
         };
 

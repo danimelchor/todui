@@ -73,15 +73,3 @@ pub fn parse_date(s: &String, settings: &Settings) -> Result<DateTime<Local>> {
         Err(anyhow!("Unable to parse date"))
     }
 }
-
-pub fn is_hyperlink(s: &String) -> bool {
-    s.starts_with("http://") || s.starts_with("https://")
-}
-
-pub fn ellipsis_or_pad(s: &String, max_length: usize) -> String {
-    if s.len() > max_length {
-        format!("{}...", &s[..max_length-3])
-    } else {
-        format!("{:width$}", s, width = max_length)
-    }
-}

@@ -49,13 +49,14 @@ impl TaskPage {
         task_form.date = utils::date_to_input_str(&task.date, &app.borrow().settings);
         task_form.repeats = task.repeats.to_string();
         task_form.description = task.description.unwrap_or("".to_string());
+        task_form.url = task.url.unwrap_or("".to_string());
 
         TaskPage {
             task_form,
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
             error: None,
-            num_fields: 4,
+            num_fields: 5,
             editing_task: Some(task_id),
             app,
         }
@@ -79,6 +80,7 @@ impl TaskPage {
             1 => self.task_form.date.push(c),
             2 => self.task_form.repeats.push(c),
             3 => self.task_form.description.push(c),
+            4 => self.task_form.url.push(c),
             _ => {}
         };
     }
@@ -89,6 +91,7 @@ impl TaskPage {
             1 => self.task_form.date.pop(),
             2 => self.task_form.repeats.pop(),
             3 => self.task_form.description.pop(),
+            4 => self.task_form.url.pop(),
             _ => None,
         };
     }
@@ -173,6 +176,7 @@ where
                     Constraint::Length(3),
                     Constraint::Length(3),
                     Constraint::Length(3),
+                    Constraint::Length(3),
                 ]
                 .as_ref(),
             )
@@ -234,9 +238,20 @@ where
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Description or URL"),
+                    .title("Description"),
             );
         f.render_widget(input, chunks[4]);
+        
+        // Description
+        let curr_text = self.task_form.url.clone();
+        let input = Paragraph::new(curr_text.as_ref())
+            .style(self.border_style(4))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("URL"),
+            );
+        f.render_widget(input, chunks[5]);
 
         // Place cursor
         if focused {
@@ -257,6 +272,10 @@ where
                     chunks[4].x + self.task_form.description.width() as u16 + 1,
                     chunks[4].y + 1,
                 ),
+                4 => f.set_cursor(
+                    chunks[5].x + self.task_form.url.width() as u16 + 1,
+                    chunks[5].y + 1,
+                ),
                 _ => {}
             }
         }
@@ -266,7 +285,7 @@ where
             let error = Paragraph::new(error.as_ref())
                 .style(Style::default().fg(Color::Red))
                 .block(Block::default().borders(Borders::ALL).title("Error"));
-            f.render_widget(error, chunks[5]);
+            f.render_widget(error, chunks[6]);
         }
     }
 }
