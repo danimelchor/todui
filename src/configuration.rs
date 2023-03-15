@@ -1,9 +1,11 @@
 use crate::utils;
+use anyhow::{Result, anyhow};
 use crossterm::event::KeyCode;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
+use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Icons {
@@ -306,7 +308,7 @@ impl Colors {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Settings {
-    pub db_file: String,
+    pub db_file: PathBuf,
     pub date_formats: DateFormats,
     pub show_complete: bool,
     pub icons: Icons,
@@ -321,14 +323,14 @@ impl Settings {
     }
 
     pub fn save_state(&self) {
-        let settings_path = SettingsBuilder::get_settings_path();
+        let settings_path = SettingsBuilder::get_settings_path().expect("Settings file should exist.");
         utils::save_settings(&settings_path, self);
     }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SettingsBuilder {
-    pub db_file: String,
+    pub db_file: PathBuf,
     pub date_formats: DateFormats,
     pub show_complete: bool,
     pub icons: Icons,
@@ -339,7 +341,7 @@ pub struct SettingsBuilder {
 impl SettingsBuilder {
     pub fn default() -> Self {
         SettingsBuilder {
-            db_file: Self::get_default_db_file(),
+            db_file: Self::get_default_db_file().unwrap(),
             show_complete: true,
             icons: Icons::default(),
             date_formats: DateFormats::new(),
@@ -348,38 +350,50 @@ impl SettingsBuilder {
         }
     }
 
-    pub fn default_path() -> String {
-        let home = std::env::var("HOME").unwrap();
-        let path = format!("{}/.config/todo-rs", home);
-        fs::create_dir_all(&path).unwrap();
-        path
+    pub fn default_path() -> Result<PathBuf> {
+        match dirs::home_dir() {
+            Some(path) => {
+                let path = Path::new(&path);
+
+                let config_dir = path.join(".config");
+                if !path.exists() {
+                    fs::create_dir_all(&path)?;
+                }
+
+                let todo_dir = config_dir.join("todo-rs");
+                if !todo_dir.exists() {
+                    fs::create_dir_all(&todo_dir)?;
+                }
+                Ok(todo_dir)
+            }
+            None => Err(anyhow!("Could not find home directory")),
+        }
     }
 
-    pub fn get_default_db_file() -> String {
-        let path = Self::default_path();
-        let path = format!("{}/tasks.json", path);
+    pub fn get_default_db_file() -> Result<PathBuf> {
+        let default_path = Self::default_path()?;
+        let path = default_path.join("tasks.json");
 
-        if !std::path::Path::new(&path).exists() {
+        if !path.exists() {
             let mut file = OpenOptions::new()
                 .write(true)
                 .create(true)
-                .open(&path)
-                .expect("Could not create db file");
-            writeln!(file, "[]").unwrap();
+                .open(&path)?;
+            writeln!(file, "[]")?;
         }
 
-        path
+        Ok(path)
     }
 
-    pub fn get_settings_path() -> String {
-        let path = Self::default_path();
-        let path = format!("{}/settings.json", path);
-        if !std::path::Path::new(&path).exists() {
+    pub fn get_settings_path() -> Result<PathBuf> {
+        let default_path = Self::default_path()?;
+        let path = default_path.join("settings.json");
+        if !path.exists() {
             let settings = Self::default();
-            let settings_json = serde_json::to_string_pretty(&settings).unwrap();
-            fs::write(&path, settings_json).unwrap();
+            let settings_json = serde_json::to_string_pretty(&settings)?;
+            fs::write(&path, settings_json)?;
         }
-        path
+        Ok(path)
     }
 
     pub fn build(&mut self) -> Settings {
@@ -394,13 +408,9 @@ impl SettingsBuilder {
     }
 }
 
-pub fn get_configuration() -> Settings {
-    let settings_path = SettingsBuilder::get_settings_path();
-    config::Config::builder()
-        .add_source(config::File::with_name(settings_path.as_str()))
-        .build()
-        .unwrap()
-        .try_deserialize::<SettingsBuilder>()
-        .expect("Could not deserialize configuration")
-        .build()
+pub fn get_configuration() -> Result<Settings> {
+    let settings_path = SettingsBuilder::get_settings_path()?;
+    let file = OpenOptions::new().read(true).open(&settings_path)?;
+    let settings = serde_json::from_reader(file)?;
+    Ok(settings)
 }
