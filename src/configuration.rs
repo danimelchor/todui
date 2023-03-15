@@ -308,7 +308,6 @@ impl Colors {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Settings {
-    pub db_file: PathBuf,
     pub date_formats: DateFormats,
     pub show_complete: bool,
     pub icons: Icons,
@@ -330,7 +329,6 @@ impl Settings {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SettingsBuilder {
-    pub db_file: PathBuf,
     pub date_formats: DateFormats,
     pub show_complete: bool,
     pub icons: Icons,
@@ -341,7 +339,6 @@ pub struct SettingsBuilder {
 impl SettingsBuilder {
     pub fn default() -> Self {
         SettingsBuilder {
-            db_file: Self::get_default_db_file().unwrap(),
             show_complete: true,
             icons: Icons::default(),
             date_formats: DateFormats::new(),
@@ -398,7 +395,6 @@ impl SettingsBuilder {
 
     pub fn build(&mut self) -> Settings {
         Settings {
-            db_file: self.db_file.clone(),
             date_formats: self.date_formats.clone(),
             show_complete: self.show_complete,
             icons: self.icons.clone(),
@@ -408,9 +404,13 @@ impl SettingsBuilder {
     }
 }
 
-pub fn get_configuration() -> Result<Settings> {
-    let settings_path = SettingsBuilder::get_settings_path()?;
-    let file = OpenOptions::new().read(true).open(&settings_path)?;
-    let settings = serde_json::from_reader(file)?;
-    Ok(settings)
+pub fn get_configuration() -> Settings {
+    let settings_path = SettingsBuilder::get_settings_path().expect("Settings file should exist.");
+    let file = OpenOptions::new().read(true).open(&settings_path).expect("Could not open settings file");
+    let settings = serde_json::from_reader(file).expect("Could not parse settings file");
+    settings
+}
+
+pub fn get_db_file() -> PathBuf {
+    SettingsBuilder::get_default_db_file().expect("Could not find default db file")
 }

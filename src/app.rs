@@ -1,4 +1,4 @@
-use crate::{configuration::Settings, task::Task, utils};
+use crate::{configuration::{Settings, get_db_file}, task::Task, utils};
 
 pub struct App {
     pub tasks: Vec<Task>,
@@ -8,7 +8,7 @@ pub struct App {
 
 impl App {
     pub fn new(settings: Settings) -> App {
-        let tasks = utils::load_tasks(&settings.db_file);
+        let tasks = utils::load_tasks(get_db_file());
         let current_id = tasks.iter().map(|t| t.id.unwrap()).max().unwrap_or(0);
         App {
             tasks,
@@ -19,7 +19,7 @@ impl App {
 
     pub fn save_state(&mut self) {
         self.tasks.sort_by(|a, b| a.date.cmp(&b.date));
-        utils::save_tasks(&self.settings.db_file, &self);
+        utils::save_tasks(get_db_file(), &self);
     }
 
     pub fn get_task(&self, id: usize) -> Option<&Task> {
