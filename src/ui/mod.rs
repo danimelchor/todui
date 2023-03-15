@@ -81,15 +81,15 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                     _ if code == keybindings.quit => break,
                     _ if code == keybindings.down => {
                         all_tasks_page.next();
-                        let current_idx = all_tasks_page.current_idx.unwrap();
-                        let task_id = app.borrow().tasks[current_idx].id.unwrap();
-                        task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
+                        if let Some(task_id) = all_tasks_page.current_id {
+                            task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
+                        }
                     }
                     _ if code == keybindings.up => {
                         all_tasks_page.prev();
-                        let current_idx = all_tasks_page.current_idx.unwrap();
-                        let task_id = app.borrow().tasks[current_idx].id.unwrap();
-                        task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
+                        if let Some(task_id) = all_tasks_page.current_id {
+                            task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
+                        }
                     }
                     _ if code == keybindings.complete_task => all_tasks_page.toggle_selected(),
                     _ if code == keybindings.toggle_completed_tasks => {
@@ -102,7 +102,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         task_page = TaskPage::new(Rc::clone(&app));
                     }
                     _ if code == keybindings.edit_task => {
-                        if all_tasks_page.current_idx.is_some() {
+                        if all_tasks_page.current_id.is_some() {
                             current_page = UIPage::EditTask;
                         }
                     }
@@ -160,7 +160,7 @@ fn render_app<B: Backend>(
     task_page: &mut TaskPage,
     current_page: &UIPage,
 ) {
-    let constraints = match (current_page, all_tasks_page.current_idx) {
+    let constraints = match (current_page, all_tasks_page.current_id) {
         (UIPage::AllTasks | UIPage::EditTask, Some(_)) => {
             [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref()
         }
@@ -179,7 +179,7 @@ fn render_app<B: Backend>(
         UIPage::NewTask => {
             task_page.ui(f, chunks[0], true);
         }
-        _ => match all_tasks_page.current_idx {
+        _ => match all_tasks_page.current_id {
             Some(_) => {
                 all_tasks_page.ui(f, chunks[0], current_page == &UIPage::AllTasks);
                 task_page.ui(f, chunks[1], current_page == &UIPage::EditTask);

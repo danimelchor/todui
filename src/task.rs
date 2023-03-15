@@ -27,6 +27,7 @@ pub struct Task {
     #[serde(serialize_with = "serialize_dt", deserialize_with = "deserialize_dt")]
     pub date: DateTime<Local>,
     pub repeats: Repeat,
+    pub group: Option<String>,
     pub description: Option<String>,
     pub url: Option<String>,
     pub complete: bool,
@@ -43,6 +44,10 @@ impl Task {
 
     pub fn set_repeats(&mut self, repeats: Repeat) {
         self.repeats = repeats;
+    }
+
+    pub fn set_group(&mut self, group: String) {
+        self.group = Some(group);
     }
 
     pub fn set_description(&mut self, description: String) {
@@ -113,6 +118,7 @@ impl Default for Task {
             name: "".to_string(),
             date: Local::now(),
             repeats: Repeat::Never,
+            group: None,
             description: None,
             url: None,
             complete: false,

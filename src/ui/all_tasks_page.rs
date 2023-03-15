@@ -3,6 +3,7 @@ use crate::repeat::Repeat;
 use crate::task::Task;
 use crate::ui::Page;
 use crate::utils;
+use anyhow::Result;
 use chrono::{DateTime, Local, TimeZone};
 use itertools::Itertools;
 use std::cell::RefCell;
@@ -19,8 +20,9 @@ use tui::{
 
 pub struct AllTasksPage {
     pub show_hidden: bool,
-    pub current_idx: Option<usize>,
+    pub current_id: Option<usize>,
     pub app: Rc<RefCell<App>>,
+    pub current_group: Option<String>,
 }
 
 impl AllTasksPage {
@@ -28,95 +30,94 @@ impl AllTasksPage {
         let show_hidden = app.borrow().settings.show_complete;
         AllTasksPage {
             show_hidden,
-            current_idx: None,
+            current_id: None,
+            current_group: None,
             app,
         }
     }
 
-    pub fn get_current_task_id(&self) -> Option<usize> {
-        let idx = self.current_idx?;
-        Some(self.app.borrow().tasks[idx].id.unwrap())
+    pub fn visible_tasks(&self) -> Vec<Task> {
+        let tasks = self.app.borrow_mut().tasks.clone();
+
+        // Filter out hidden tasks
+        let tasks = if !self.show_hidden {
+            tasks
+                .iter()
+                .filter(|t| !t.complete)
+                .map(|t| t.clone())
+                .collect::<Vec<Task>>()
+        } else {
+            tasks
+        };
+
+        // Filter out tasks not in the current group
+        let tasks = if let Some(group) = &self.current_group {
+            tasks
+                .iter()
+                .filter(|t| t.group.is_some())
+                .filter(|t| t.group.as_ref().unwrap() == group)
+                .map(|t| t.clone())
+                .collect::<Vec<Task>>()
+        } else {
+            tasks
+        };
+
+        tasks
     }
 
     pub fn toggle_selected(&mut self) {
-        if self.current_idx.is_none() {
-            return;
-        }
+        if let Some(task_id) = self.current_id {
+            self.app.borrow_mut().toggle_complete_task(task_id);
 
-        let task_id = self.get_current_task_id().unwrap();
-        self.app.borrow_mut().toggle_complete_task(task_id);
-
-        if !self.show_hidden {
-            self.move_closest();
+            if !self.show_hidden {
+                self.move_closest();
+            }
         }
     }
 
     pub fn delete_selected(&mut self) {
-        if self.current_idx.is_none() {
-            return;
+        if let Some(task_id) = self.current_id {
+            self.app.borrow_mut().delete_task(task_id);
+            self.move_closest();
         }
-
-        let task_id = self.get_current_task_id().unwrap();
-        self.app.borrow_mut().delete_task(task_id);
-        self.move_closest();
     }
 
     pub fn next(&mut self) {
-        let len = self.app.borrow().tasks.len();
-
-        if self.current_idx.is_none() && len > 0 {
-            self.current_idx = self.app.borrow().tasks.iter().position(|t| !t.complete);
-            return;
-        } else if self.current_idx.is_none() {
-            return;
-        }
-
-        let curr_idx = self.current_idx.unwrap();
-
-        if self.show_hidden && curr_idx + 1 < len {
-            self.current_idx = Some(curr_idx + 1);
-            return;
-        } else if self.show_hidden {
-            return;
-        }
-
-        for i in curr_idx + 1..len {
-            if !self.app.borrow().tasks[i].complete {
-                self.current_idx = Some(i);
-                return;
+        let tasks = self.visible_tasks();
+        match self.current_id {
+            Some(id) => {
+                let idx = tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
+                if idx < tasks.len() - 1 {
+                    self.current_id = Some(tasks[idx + 1].id.unwrap());
+                }
+            }
+            None => {
+                if tasks.len() > 0 {
+                    self.current_id = Some(tasks[0].id.unwrap());
+                }
             }
         }
     }
 
     pub fn prev(&mut self) {
-        let len = self.app.borrow().tasks.len();
-
-        if self.current_idx.is_none() && len > 0 {
-            self.current_idx = self.app.borrow().tasks.iter().rposition(|t| !t.complete);
-            return;
-        } else if self.current_idx.is_none() {
-            return;
-        }
-
-        let curr_idx = self.current_idx.unwrap();
-
-        if self.show_hidden && curr_idx > 0 {
-            self.current_idx = Some((curr_idx + len - 1) % len);
-            return;
-        }
-
-        for i in (0..curr_idx).rev() {
-            if !self.app.borrow().tasks[i].complete {
-                self.current_idx = Some(i);
-                return;
+        let tasks = self.visible_tasks();
+        match self.current_id {
+            Some(id) => {
+                let idx = tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
+                if idx > 0 {
+                    self.current_id = Some(tasks[idx - 1].id.unwrap());
+                }
+            }
+            None => {
+                if tasks.len() > 0 {
+                    self.current_id = Some(tasks[tasks.len() - 1].id.unwrap());
+                }
             }
         }
     }
 
     pub fn groups(&self) -> Vec<Vec<Task>> {
-        self.app
-            .borrow()
-            .tasks
+        self.visible_tasks()
             .clone()
             .into_iter()
             .group_by(|t| t.date.date_naive())
@@ -126,33 +127,33 @@ impl AllTasksPage {
     }
 
     pub fn move_closest(&mut self) {
-        let len = self.app.borrow().tasks.len();
-
-        if self.current_idx.is_none() && len > 0 {
-            self.current_idx = Some(0);
-            return;
-        } else if self.current_idx.is_none() {
-            return;
-        }
-
-        let curr_idx = self.current_idx.unwrap();
-        let app = self.app.borrow();
-
-        for i in curr_idx..len {
-            if !app.tasks[i].complete {
-                self.current_idx = Some(i);
-                return;
+        let current_date: Option<DateTime<Local>> = {
+            match self.current_id {
+                Some(id) => {
+                    let app = self.app.borrow();
+                    let task = app.get_task(id);
+                    match task {
+                        Some(task) => Some(task.date),
+                        None => None,
+                    }
+                }
+                None => None,
             }
-        }
+        };
 
-        for i in (0..curr_idx).rev() {
-            if !app.tasks[i].complete {
-                self.current_idx = Some(i);
-                return;
-            }
+        // Move to next task if any, else previous, else none
+        let tasks = self.visible_tasks();
+        let current_date = current_date.unwrap_or_else(|| Local::now());
+        let closest = tasks.iter().min_by_key(|t| {
+            t.date
+                .signed_duration_since(current_date)
+                .num_seconds()
+                .abs()
+        });
+        match closest {
+            Some(task) => self.current_id = Some(task.id.unwrap()),
+            None => self.current_id = None,
         }
-
-        self.current_idx = None;
     }
 
     pub fn toggle_hidden(&mut self) {
@@ -182,20 +183,17 @@ impl AllTasksPage {
     }
 
     pub fn open_selected_link(&self) {
-        if self.current_idx.is_none() {
-            return;
+        if let Some(task_id) = self.current_id {
+            let url = self
+                .app
+                .borrow()
+                .get_task(task_id)
+                .unwrap()
+                .url
+                .clone()
+                .unwrap_or_default();
+            open::that(url).unwrap();
         }
-
-        let task_id = self.get_current_task_id().unwrap();
-        let url = self
-            .app
-            .borrow()
-            .get_task(task_id)
-            .unwrap()
-            .url
-            .clone()
-            .unwrap_or_default();
-        open::that(url).unwrap();
     }
 
     pub fn get_primary_color(&self) -> Color {
@@ -219,7 +217,6 @@ where
 
         // Build list
         let mut rows = vec![];
-        let mut current_idx = 0;
         for group in self.groups() {
             // Group title
             let group_date = &group[0].date.date_naive().and_hms_opt(23, 59, 59).unwrap();
@@ -239,7 +236,6 @@ where
             for (idx, item) in group.iter().enumerate() {
                 // Skip if hidden
                 if !self.show_hidden && item.complete {
-                    current_idx += 1;
                     continue;
                 }
 
@@ -247,8 +243,8 @@ where
                 let complete_icon = self.get_complete_icon(item.complete);
                 let recurring_icon = self.get_repeats_icon(&item.repeats);
                 let title = format!("{} {} {} ", complete_icon, item.name, recurring_icon);
-                let title_style = match (item.complete, self.current_idx) {
-                    (_, Some(idx)) if idx == current_idx => Style::default()
+                let title_style = match (item.complete, self.current_id) {
+                    (_, Some(task_id)) if task_id == item.id.unwrap() => Style::default()
                         .fg(self.get_primary_color())
                         .add_modifier(Modifier::BOLD),
                     (true, _) => Style::default().fg(Color::DarkGray),
@@ -266,7 +262,6 @@ where
                     new_row = new_row.bottom_margin(1);
                 }
 
-                current_idx += 1;
                 rows.push(new_row);
             }
 
