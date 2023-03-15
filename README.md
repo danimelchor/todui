@@ -64,7 +64,7 @@ The default config is the following:
 **List of tasks panel**
 
 | Keybinds | Description |
-|-----------------------|
+| --------------------- | 
 | q | Quits the application | 
 | j | Moves down one task |
 | k | Moves up one task |
@@ -82,7 +82,7 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 *Normal mode*
 
 | Keybinds | Description|
-|-----------------------|
+| --------------------- |
 | j | Move down to the next field |
 | k | Move up to the previous field |
 | q | Quit the application |
@@ -93,7 +93,7 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 *Insert mode*
 
 | Keybinds | Description|
-|-----------------------|
+| --------------------- |
 | Esc | Exit insert mode / go back to normal mode |
 
 ## Installation
