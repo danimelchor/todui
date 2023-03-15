@@ -91,38 +91,7 @@ pub fn serialize_key<S>(key: &KeyCode, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
-    let key = match key {
-        KeyCode::Esc => "Esc",
-        KeyCode::Backspace => "Backspace",
-        KeyCode::Left => "Left",
-        KeyCode::Right => "Right",
-        KeyCode::Up => "Up",
-        KeyCode::Down => "Down",
-        KeyCode::Home => "Home",
-        KeyCode::End => "End",
-        KeyCode::Delete => "Delete",
-        KeyCode::Insert => "Insert",
-        KeyCode::PageUp => "PageUp",
-        KeyCode::PageDown => "PageDown",
-        KeyCode::F(1) => "F1",
-        KeyCode::F(2) => "F2",
-        KeyCode::F(3) => "F3",
-        KeyCode::F(4) => "F4",
-        KeyCode::F(5) => "F5",
-        KeyCode::F(6) => "F6",
-        KeyCode::F(7) => "F7",
-        KeyCode::F(8) => "F8",
-        KeyCode::F(9) => "F9",
-        KeyCode::F(10) => "F10",
-        KeyCode::F(11) => "F11",
-        KeyCode::F(12) => "F12",
-        KeyCode::Char(' ') => "Space",
-        KeyCode::Tab => "Tab",
-        KeyCode::Enter => "Enter",
-        KeyCode::Char(c) => return c.serialize(serializer),
-        _ => "Unknown",
-    };
-
+    let key = KeyBindings::key_to_str(key);
     key.serialize(serializer)
 }
 
@@ -195,6 +164,40 @@ impl KeyBindings {
             enter_normal_mode: KeyCode::Esc,
             go_back: KeyCode::Char('b'),
             open_link: KeyCode::Enter,
+        }
+    }
+
+    pub fn key_to_str(key: &KeyCode) -> String {
+        match key {
+            KeyCode::Esc => "Esc".to_string(),
+            KeyCode::Backspace => "Backspace".to_string(),
+            KeyCode::Left => "Left".to_string(),
+            KeyCode::Right => "Right".to_string(),
+            KeyCode::Up => "Up".to_string(),
+            KeyCode::Down => "Down".to_string(),
+            KeyCode::Home => "Home".to_string(),
+            KeyCode::End => "End".to_string(),
+            KeyCode::Delete => "Delete".to_string(),
+            KeyCode::Insert => "Insert".to_string(),
+            KeyCode::PageUp => "PageUp".to_string(),
+            KeyCode::PageDown => "PageDown".to_string(),
+            KeyCode::F(1) => "F1".to_string(),
+            KeyCode::F(2) => "F2".to_string(),
+            KeyCode::F(3) => "F3".to_string(),
+            KeyCode::F(4) => "F4".to_string(),
+            KeyCode::F(5) => "F5".to_string(),
+            KeyCode::F(6) => "F6".to_string(),
+            KeyCode::F(7) => "F7".to_string(),
+            KeyCode::F(8) => "F8".to_string(),
+            KeyCode::F(9) => "F9".to_string(),
+            KeyCode::F(10) => "F10".to_string(),
+            KeyCode::F(11) => "F11".to_string(),
+            KeyCode::F(12) => "F12".to_string(),
+            KeyCode::Char(' ') => "Space".to_string(),
+            KeyCode::Tab => "Tab".to_string(),
+            KeyCode::Enter => "Enter".to_string(),
+            KeyCode::Char(c) => c.to_string(),
+            _ => "Unknown".to_string(),
         }
     }
 }

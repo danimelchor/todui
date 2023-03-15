@@ -25,7 +25,8 @@ use task_page::NewTaskInputMode;
 #[macro_export]
 macro_rules! key {
     ($keybind:expr, $color:expr) => {{
-        let keybind = format!("'{}'", $keybind);
+        let keybind = KeyBindings::key_to_str(&$keybind);
+        let keybind = format!("'{}'", keybind);
         Span::styled(keybind, Style::default().fg($color))
     }};
 }

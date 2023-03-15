@@ -1,4 +1,4 @@
-use crate::{app::App, key, task_form::TaskForm, utils};
+use crate::{app::App, key, task_form::TaskForm, utils, configuration::KeyBindings};
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
@@ -124,13 +124,14 @@ impl TaskPage {
 
     fn get_keybind_hint(&self) -> Spans {
         let color = self.get_secondary_color();
-        let i = key!("i", color);
-        let q = key!("q", color);
-        let j = key!("j", color);
-        let k = key!("k", color);
-        let enter = key!("enter", color);
-        let esc = key!("esc", color);
-        let b = key!("b", color);
+        let kb = &self.app.borrow().settings.keybindings;
+        let i = key!(kb.enter_insert_mode, color);
+        let q = key!(kb.quit, color);
+        let j = key!(kb.down, color);
+        let k = key!(kb.up, color);
+        let enter = key!(kb.save_changes, color);
+        let esc = key!(kb.enter_normal_mode, color);
+        let b = key!(kb.go_back, color);
 
         Spans::from(vec![
             Span::raw("Press "),
@@ -138,9 +139,9 @@ impl TaskPage {
             Span::raw(" to enter insert mode, "),
             q,
             Span::raw(" to quit, "),
-            j,
-            Span::raw(" and "),
             k,
+            Span::raw(" and "),
+            j,
             Span::raw(" to move up and down, "),
             enter,
             Span::raw(" to save, "),
