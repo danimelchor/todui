@@ -6,7 +6,7 @@ https://user-images.githubusercontent.com/24496843/225117353-7b15a5cf-d313-47ed-
 
 ## How to use?
 
-You can run the TUI by executing `rust-todo` anywhere in your terminal. To use the CLI, you can start by running `rust-todo --help`:
+You can run the TUI by executing `todo-rs` anywhere in your terminal. To use the CLI, you can start by running `todo-rs --help`:
 
 ```
 $ todo-rs --help
