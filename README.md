@@ -3,7 +3,7 @@
 ## TUI
 
 
-https://user-images.githubusercontent.com/24496843/225178402-b54a4ce3-1144-4427-9441-b36f70c2c487.mov
+https://user-images.githubusercontent.com/24496843/225178561-0f81d039-dba5-4cb0-a282-e0e777e5cc2e.mov
 
 
 ## How to use?
