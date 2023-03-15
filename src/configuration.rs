@@ -1,4 +1,5 @@
 use crate::utils;
+use crossterm::event::KeyCode;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::OpenOptions;
@@ -48,6 +49,83 @@ where
     Ok(color.to_tui_color())
 }
 
+pub fn deserialize_key<'de, D>(deserializer: D) -> Result<KeyCode, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    match s.to_lowercase().as_ref() {
+        "esc" => Ok(KeyCode::Esc),
+        "backspace" => Ok(KeyCode::Backspace),
+        "left" => Ok(KeyCode::Left),
+        "right" => Ok(KeyCode::Right),
+        "up" => Ok(KeyCode::Up),
+        "down" => Ok(KeyCode::Down),
+        "home" => Ok(KeyCode::Home),
+        "end" => Ok(KeyCode::End),
+        "delete" => Ok(KeyCode::Delete),
+        "insert" => Ok(KeyCode::Insert),
+        "pageup" => Ok(KeyCode::PageUp),
+        "pagedown" => Ok(KeyCode::PageDown),
+        "f1" => Ok(KeyCode::F(1)),
+        "f2" => Ok(KeyCode::F(2)),
+        "f3" => Ok(KeyCode::F(3)),
+        "f4" => Ok(KeyCode::F(4)),
+        "f5" => Ok(KeyCode::F(5)),
+        "f6" => Ok(KeyCode::F(6)),
+        "f7" => Ok(KeyCode::F(7)),
+        "f8" => Ok(KeyCode::F(8)),
+        "f9" => Ok(KeyCode::F(9)),
+        "f10" => Ok(KeyCode::F(10)),
+        "f11" => Ok(KeyCode::F(11)),
+        "f12" => Ok(KeyCode::F(12)),
+        "space" => Ok(KeyCode::Char(' ')),
+        "tab" => Ok(KeyCode::Tab),
+        "enter" => Ok(KeyCode::Enter),
+        c if c.len() == 1 => Ok(KeyCode::Char(c.chars().next().unwrap())),
+        _ => Err(serde::de::Error::custom("Invalid key")),
+    }
+}
+
+pub fn serialize_key<S>(key: &KeyCode, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let key = match key {
+        KeyCode::Esc => "Esc",
+        KeyCode::Backspace => "Backspace",
+        KeyCode::Left => "Left",
+        KeyCode::Right => "Right",
+        KeyCode::Up => "Up",
+        KeyCode::Down => "Down",
+        KeyCode::Home => "Home",
+        KeyCode::End => "End",
+        KeyCode::Delete => "Delete",
+        KeyCode::Insert => "Insert",
+        KeyCode::PageUp => "PageUp",
+        KeyCode::PageDown => "PageDown",
+        KeyCode::F(1) => "F1",
+        KeyCode::F(2) => "F2",
+        KeyCode::F(3) => "F3",
+        KeyCode::F(4) => "F4",
+        KeyCode::F(5) => "F5",
+        KeyCode::F(6) => "F6",
+        KeyCode::F(7) => "F7",
+        KeyCode::F(8) => "F8",
+        KeyCode::F(9) => "F9",
+        KeyCode::F(10) => "F10",
+        KeyCode::F(11) => "F11",
+        KeyCode::F(12) => "F12",
+        KeyCode::Char(' ') => "Space",
+        KeyCode::Tab => "Tab",
+        KeyCode::Enter => "Enter",
+        KeyCode::Char(c) => return c.serialize(serializer),
+        _ => "Unknown",
+    };
+
+    key.serialize(serializer)
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum Color {
     Reset,
@@ -69,6 +147,56 @@ pub enum Color {
     White,
     Rgb(u8, u8, u8),
     Indexed(u8),
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct KeyBindings {
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub quit: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub down: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub up: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub complete_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub toggle_completed_tasks: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub delete_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub new_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub edit_task: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub save_changes: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub enter_insert_mode: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub enter_normal_mode: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub go_back: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub open_link: KeyCode,
+}
+
+impl KeyBindings {
+    pub fn default() -> Self {
+        Self {
+            quit: KeyCode::Char('q'),
+            down: KeyCode::Char('j'),
+            up: KeyCode::Char('k'),
+            complete_task: KeyCode::Char('x'),
+            toggle_completed_tasks: KeyCode::Char('h'),
+            delete_task: KeyCode::Char('d'),
+            new_task: KeyCode::Char('n'),
+            edit_task: KeyCode::Char('e'),
+            save_changes: KeyCode::Enter,
+            enter_insert_mode: KeyCode::Char('i'),
+            enter_normal_mode: KeyCode::Esc,
+            go_back: KeyCode::Char('b'),
+            open_link: KeyCode::Enter,
+        }
+    }
 }
 
 impl Color {
@@ -146,14 +274,22 @@ impl DateFormats {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Colors {
-    #[serde(serialize_with = "serialize_color", deserialize_with = "deserialize_color")]
+    #[serde(
+        serialize_with = "serialize_color",
+        deserialize_with = "deserialize_color"
+    )]
     pub primary_color: tui::style::Color,
-    #[serde(serialize_with = "serialize_color", deserialize_with = "deserialize_color")]
+    #[serde(
+        serialize_with = "serialize_color",
+        deserialize_with = "deserialize_color"
+    )]
     pub secondary_color: tui::style::Color,
-    #[serde(serialize_with = "serialize_color", deserialize_with = "deserialize_color")]
+    #[serde(
+        serialize_with = "serialize_color",
+        deserialize_with = "deserialize_color"
+    )]
     pub accent_color: tui::style::Color,
 }
-
 
 impl Colors {
     fn default() -> Self {
@@ -172,6 +308,7 @@ pub struct Settings {
     pub show_complete: bool,
     pub icons: Icons,
     pub colors: Colors,
+    pub keybindings: KeyBindings,
 }
 
 impl Settings {
@@ -193,6 +330,7 @@ pub struct SettingsBuilder {
     pub show_complete: bool,
     pub icons: Icons,
     pub colors: Colors,
+    pub keybindings: KeyBindings,
 }
 
 impl SettingsBuilder {
@@ -203,6 +341,7 @@ impl SettingsBuilder {
             icons: Icons::default(),
             date_formats: DateFormats::new(),
             colors: Colors::default(),
+            keybindings: KeyBindings::default(),
         }
     }
 
@@ -247,6 +386,7 @@ impl SettingsBuilder {
             show_complete: self.show_complete,
             icons: self.icons.clone(),
             colors: self.colors.clone(),
+            keybindings: self.keybindings.clone(),
         }
     }
 }

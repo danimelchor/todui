@@ -71,32 +71,36 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
 
     loop {
         terminal.draw(|f| render_app(f, &mut all_tasks_page, &mut task_page, &current_page))?;
+        let keybindings = &app.borrow().settings.keybindings;
 
         if let Event::Key(key) = event::read()? {
+            let code = key.code;
             match current_page {
-                UIPage::AllTasks => match key.code {
-                    KeyCode::Char('q') => break,
-                    KeyCode::Char('j') => {
+                UIPage::AllTasks => match code {
+                    _ if code == keybindings.quit => break,
+                    _ if code == keybindings.down => {
                         all_tasks_page.next();
                         let current_idx = all_tasks_page.current_idx.unwrap();
                         let task_id = app.borrow().tasks[current_idx].id.unwrap();
                         task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
                     }
-                    KeyCode::Char('k') => {
+                    _ if code == keybindings.up => {
                         all_tasks_page.prev();
                         let current_idx = all_tasks_page.current_idx.unwrap();
                         let task_id = app.borrow().tasks[current_idx].id.unwrap();
                         task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
                     }
-                    KeyCode::Char('x') => all_tasks_page.toggle_selected(),
-                    KeyCode::Char('h') => all_tasks_page.toggle_hidden(),
-                    KeyCode::Char('d') => all_tasks_page.delete_selected(),
-                    KeyCode::Enter => all_tasks_page.open_selected_link(),
-                    KeyCode::Char('n') => {
+                    _ if code == keybindings.complete_task => all_tasks_page.toggle_selected(),
+                    _ if code == keybindings.toggle_completed_tasks => {
+                        all_tasks_page.toggle_hidden()
+                    }
+                    _ if code == keybindings.delete_task => all_tasks_page.delete_selected(),
+                    _ if code == keybindings.open_link => all_tasks_page.open_selected_link(),
+                    _ if code == keybindings.new_task => {
                         current_page = UIPage::NewTask;
                         task_page = TaskPage::new(Rc::clone(&app));
                     }
-                    KeyCode::Char('e') => {
+                    _ if code == keybindings.edit_task => {
                         if let Some(_) = all_tasks_page.current_idx {
                             current_page = UIPage::EditTask;
                         }
@@ -105,16 +109,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                 },
                 UIPage::NewTask | UIPage::EditTask => match task_page.input_mode {
                     NewTaskInputMode::Normal => match key.code {
-                        KeyCode::Char('j') => task_page.next_field(),
-                        KeyCode::Char('k') => task_page.prev_field(),
-                        KeyCode::Char('q') => break,
-                        KeyCode::Char('i') => {
+                        _ if code == keybindings.down => task_page.next_field(),
+                        _ if code == keybindings.up => task_page.prev_field(),
+                        _ if code == keybindings.quit => break,
+                        _ if code == keybindings.enter_insert_mode => {
                             task_page.input_mode = NewTaskInputMode::Insert;
                         }
-                        KeyCode::Char('b') => {
+                        _ if code == keybindings.go_back => {
                             current_page = UIPage::AllTasks;
                         }
-                        KeyCode::Enter => {
+                        _ if code == keybindings.save_changes => {
                             let mut app = task_page.app.borrow_mut();
                             let settings = &app.settings;
                             let form_result = task_page.task_form.submit(&settings);
@@ -134,7 +138,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         _ => {}
                     },
                     NewTaskInputMode::Insert => match key.code {
-                        KeyCode::Esc => {
+                        _ if code == keybindings.enter_normal_mode => {
                             task_page.input_mode = NewTaskInputMode::Normal;
                         }
                         KeyCode::Char(c) => task_page.add_char(c),

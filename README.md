@@ -72,11 +72,13 @@ The default config is the following:
 }
 ```
 
-## Keybinds
+## Key Bindings
+
+All key bindings can be modified in the config file. The defaults have been chosen to mimic vim movements as best as possible. Feel free to modify them to your liking!
 
 **List of tasks panel**
 
-| Keybinds | Description |
+| Key Bindings | Description |
 | -------- | ---------- | 
 | `q` | Quits the application | 
 | `j` | Moves down one task |
@@ -94,7 +96,7 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 
 *Normal mode*
 
-| Keybinds | Description |
+| Key Bindings | Description |
 | -------- | ---------- |
 | `j` | Move down to the next field |
 | `k` | Move up to the previous field |
@@ -105,7 +107,7 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 
 *Insert mode*
 
-| Keybinds | Description |
+| Key Bindings | Description |
 | -------- | ---------- |
 | `Esc` | Exit insert mode / go back to normal mode |
 
