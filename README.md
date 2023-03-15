@@ -38,6 +38,8 @@ cargo install --git https://github.com/danimelchor/todo-rs.git
 
 This tool doesn't have any mandatory dependencies. However, it looks much better if you install [Nerd Fonts](https://www.nerdfonts.com/) for better icons. If you don't want to do so, you can always use your own icons or change them for plain text, like `[ ]` for an incomplete task and `[x]` for a complete task.
 
+## [Documentation](https://github.com/danimelchor/todo-rs/blob/main/DOCUMENTATION.md)
+
 ## Config
 
 The config file can be found in:
@@ -84,6 +86,8 @@ The default config is the following:
   }
 }
 ```
+
+For more options, head to [the documentation](https://github.com/danimelchor/todo-rs/blob/main/DOCUMENTATION.md)
 
 ## Key Bindings
 
