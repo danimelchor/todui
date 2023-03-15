@@ -2,9 +2,7 @@
 
 ## TUI
 
-
-https://user-images.githubusercontent.com/24496843/225175967-d1bf8b7d-c36f-4dca-af4a-5a6de1ef8233.mov
-
+https://user-images.githubusercontent.com/24496843/225178148-16c45b92-a640-4606-ba6e-b8398eaf9c8c.mov
 
 ## How to use?
 
