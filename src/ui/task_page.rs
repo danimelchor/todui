@@ -15,7 +15,7 @@ use super::Page;
 #[derive(PartialEq)]
 pub enum NewTaskInputMode {
     Normal,
-    Editing,
+    Insert,
 }
 
 pub struct TaskPage {
@@ -94,7 +94,7 @@ impl TaskPage {
     }
 
     fn border_style(&self, idx: usize) -> Style {
-        if self.current_idx == idx && self.input_mode == NewTaskInputMode::Editing {
+        if self.current_idx == idx && self.input_mode == NewTaskInputMode::Insert {
             Style::default().fg(self.get_primary_color())
         } else {
             Style::default()
@@ -132,7 +132,7 @@ impl TaskPage {
         Spans::from(vec![
             Span::raw("Press "),
             i,
-            Span::raw(" to enter input mode, "),
+            Span::raw(" to enter insert mode, "),
             q,
             Span::raw(" to quit, "),
             j,

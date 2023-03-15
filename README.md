@@ -59,6 +59,43 @@ The default config is the following:
 }
 ```
 
+## Keybinds
+
+**List of tasks panel**
+
+| Keybinds | Description |
+|-----------------------|
+| q | Quits the application | 
+| j | Moves down one task |
+| k | Moves up one task |
+| x | Marks the task as completed | 
+| h | Toggles hiding completed tasks |
+| d | Deletes the selected task forever|
+| Enter | If the task has an associated link, it opens it in your preferred browser |
+| n | Opens the new task page |
+| e | Focuses the task editing panel |
+
+**Editing/new task panel**
+
+This panel has two modes (similar to vim). When you are in insert mode, you can modify the fields to edit or create a task. When you are in normal mode, you can move around the fields, save the tasks, go back, or quit.
+
+*Normal mode*
+
+| Keybinds | Description|
+|-----------------------|
+| j | Move down to the next field |
+| k | Move up to the previous field |
+| q | Quit the application |
+| i | Enter insert mode |
+| b | Go back to the list of tasks panel |
+| Enter | Save changes or add the new task |
+
+*Insert mode*
+
+| Keybinds | Description|
+|-----------------------|
+| Esc | Exit insert mode / go back to normal mode |
+
 ## Installation
 
 Use rusts package manger to install todo-rs.

@@ -109,7 +109,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         KeyCode::Char('k') => task_page.prev_field(),
                         KeyCode::Char('q') => break,
                         KeyCode::Char('i') => {
-                            task_page.input_mode = NewTaskInputMode::Editing;
+                            task_page.input_mode = NewTaskInputMode::Insert;
                         }
                         KeyCode::Char('b') => {
                             current_page = UIPage::AllTasks;
@@ -133,7 +133,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         }
                         _ => {}
                     },
-                    _ => match key.code {
+                    NewTaskInputMode::Insert => match key.code {
                         KeyCode::Esc => {
                             task_page.input_mode = NewTaskInputMode::Normal;
                         }
