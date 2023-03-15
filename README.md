@@ -49,7 +49,7 @@ The default config is the following:
 
 ```json
 {
-  "db_file": "/Users/<USER>/.config/todo-rs/tasks.json",
+  "db_file": "/Users/danielmelchor/.config/todo-rs/tasks.json",
   "date_formats": {
     "display_date_format": "%a %b %-d",
     "display_datetime_format": "%a %b %-d at %-H:%M",
@@ -68,6 +68,21 @@ The default config is the following:
     "primary_color": "LightGreen",
     "secondary_color": "LightYellow",
     "accent_color": "LightBlue"
+  },
+  "keybindings": {
+    "quit": "q",
+    "down": "j",
+    "up": "k",
+    "complete_task": "x",
+    "toggle_completed_tasks": "h",
+    "delete_task": "d",
+    "new_task": "n",
+    "edit_task": "e",
+    "save_changes": "Enter",
+    "enter_insert_mode": "i",
+    "enter_normal_mode": "Esc",
+    "go_back": "b",
+    "open_link": "Enter"
   }
 }
 ```
