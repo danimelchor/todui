@@ -65,7 +65,7 @@ impl AllTasksPage {
         let len = self.app.borrow().tasks.len();
 
         if self.current_idx.is_none() && len > 0 {
-            self.current_idx = Some(0);
+            self.current_idx = self.app.borrow().tasks.iter().position(|t| !t.complete);
             return;
         } else if self.current_idx.is_none() {
             return;
@@ -92,7 +92,7 @@ impl AllTasksPage {
         let len = self.app.borrow().tasks.len();
 
         if self.current_idx.is_none() && len > 0 {
-            self.current_idx = Some(len - 1);
+            self.current_idx = self.app.borrow().tasks.iter().rposition(|t| !t.complete);
             return;
         } else if self.current_idx.is_none() {
             return;
