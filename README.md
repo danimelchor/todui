@@ -26,6 +26,18 @@ Options:
   -V, --version  Print version
 ```
 
+## Installation
+
+Use rusts package manger to install todo-rs.
+
+```
+cargo install --git https://github.com/danimelchor/todo-rs.git
+```
+
+## Dependencies
+
+This tool doesn't have any mandatory dependencies. However, it looks much better if you install [Nerd Fonts](https://www.nerdfonts.com/) for better icons. If you don't want to do so, you can always use your own icons or change them for plain text, like `[ ]` for an incomplete task and `[x]` for a complete task.
+
 ## Config
 
 The config file can be found in:
@@ -96,10 +108,3 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 | -------- | ---------- |
 | `Esc` | Exit insert mode / go back to normal mode |
 
-## Installation
-
-Use rusts package manger to install todo-rs.
-
-```
-cargo install --git https://github.com/danimelchor/todo-rs.git
-```
