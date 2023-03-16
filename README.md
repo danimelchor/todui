@@ -4,6 +4,16 @@
 
 https://user-images.githubusercontent.com/24496843/225213938-f2ade4b2-56c0-489c-ab5b-65c191b8c7bd.mp4
 
+## Features
+
+This app allows for almost anythig you would need when dealing with todos:
+- Create, edit, and delete tasks
+- Add links to tasks
+- Add due dates to tasks
+- Add repeating tasks
+- Add notes to tasks
+- Add tasks to groups (e.g. work, personal, etc.)
+
 ## How to use?
 
 You can run the TUI by executing `todo-rs` anywhere in your terminal. To use the CLI, you can start by running `todo-rs --help`:
@@ -74,7 +84,7 @@ The default config is the following:
     "down": "j",
     "up": "k",
     "complete_task": "x",
-    "toggle_completed_tasks": "h",
+    "toggle_completed_tasks": "c",
     "delete_task": "d",
     "new_task": "n",
     "edit_task": "e",
@@ -82,7 +92,9 @@ The default config is the following:
     "enter_insert_mode": "i",
     "enter_normal_mode": "Esc",
     "go_back": "b",
-    "open_link": "Enter"
+    "open_link": "Enter",
+    "next_tab": "l",
+    "prev_tab": "h"
   }
 }
 ```
@@ -101,11 +113,13 @@ All key bindings can be modified in the config file. The defaults have been chos
 | `j` | Moves down one task |
 | `k` | Moves up one task |
 | `x` | Marks the task as completed | 
-| `h` | Toggles hiding completed tasks |
+| `c` | Toggles hiding completed tasks |
 | `d` | Deletes the selected task forever|
 | `Enter` | If the task has an associated link, it opens it in your preferred browser |
 | `n` | Opens the new task page |
 | `e` | Focuses the task editing panel |
+| `l` | Select next group |
+| `h` | Select previous group |
 
 **Editing/new task panel**
 
