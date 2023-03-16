@@ -46,14 +46,14 @@ impl FromStr for DayOfWeek {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<DayOfWeek, Self::Err> {
-        match s {
-            "Mon" => Ok(DayOfWeek::Monday),
-            "Tue" => Ok(DayOfWeek::Tuesday),
-            "Wed" => Ok(DayOfWeek::Wednesday),
-            "Thu" => Ok(DayOfWeek::Thursday),
-            "Fri" => Ok(DayOfWeek::Friday),
-            "Sat" => Ok(DayOfWeek::Saturday),
-            "Sun" => Ok(DayOfWeek::Sunday),
+        match s.to_lowercase().as_str() {
+            "mon" => Ok(DayOfWeek::Monday),
+            "tue" => Ok(DayOfWeek::Tuesday),
+            "wed" => Ok(DayOfWeek::Wednesday),
+            "thu" => Ok(DayOfWeek::Thursday),
+            "fri" => Ok(DayOfWeek::Friday),
+            "sat" => Ok(DayOfWeek::Saturday),
+            "sun" => Ok(DayOfWeek::Sunday),
             _ => Err(anyhow::anyhow!("Invalid day of the week")),
         }
     }

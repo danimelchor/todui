@@ -16,12 +16,12 @@ pub enum Repeat {
 
 impl Repeat {
     pub fn parse_from_str(s: &str) -> Result<Repeat> {
-        match s {
-            "Never" | "" => Ok(Repeat::Never),
-            "Daily" => Ok(Repeat::Daily),
-            "Weekly" => Ok(Repeat::Weekly),
-            "Monthly" => Ok(Repeat::Monthly),
-            "Yearly" => Ok(Repeat::Yearly),
+        match s.to_lowercase().as_str() {
+            "never" | "" => Ok(Repeat::Never),
+            "daily" => Ok(Repeat::Daily),
+            "weekly" => Ok(Repeat::Weekly),
+            "monthly" => Ok(Repeat::Monthly),
+            "yearly" => Ok(Repeat::Yearly),
             _ => {
                 let days: Vec<Result<DayOfWeek>> = s
                     .split(',')
