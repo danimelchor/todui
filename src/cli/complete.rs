@@ -38,7 +38,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         Some(task_id) => {
             let task = app.get_task(task_id).unwrap();
             cli_utils::print_task(task_id, &task, format, &app.settings);
-        },
+        }
         None => {
             println!("Task with id {} not found", id);
         }

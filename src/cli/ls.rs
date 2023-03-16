@@ -99,9 +99,15 @@ pub fn filter_by_group(tasks: HashMap<Id, Task>, group: Option<String>) -> HashM
         Some(group) => {
             let group = group.to_lowercase();
             tasks
-            .into_iter()
-            .filter(|(_, t)| t.group.as_ref().map(|g| g.to_lowercase() == group).unwrap_or(false))
-            .collect()},
+                .into_iter()
+                .filter(|(_, t)| {
+                    t.group
+                        .as_ref()
+                        .map(|g| g.to_lowercase() == group)
+                        .unwrap_or(false)
+                })
+                .collect()
+        }
         None => tasks,
     }
 }

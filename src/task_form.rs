@@ -39,7 +39,7 @@ impl TaskForm {
         if self.name.is_empty() {
             return Err(anyhow::anyhow!("Task name cannot be empty"));
         }
-    
+
         task.set_id(self.id);
         task.set_name(self.name.clone());
         task.set_date(date);
