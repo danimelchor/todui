@@ -45,7 +45,7 @@ impl DeleteTaskPage {
     }
 
     pub fn remove_task(&self) {
-        self.app.borrow_mut().tasks.remove(&self.task_id);
+        self.app.borrow_mut().delete_task(self.task_id);
     }
 
     pub fn add_char(&mut self, c: char) {
