@@ -1,17 +1,17 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Local, NaiveDate, TimeZone, Timelike};
 
-use crate::app::App;
+use crate::app::{App, Id};
 use crate::configuration::Settings;
 use crate::task::Task;
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-pub fn load_tasks(file: PathBuf) -> Vec<Task> {
+pub fn load_tasks(file: PathBuf) -> HashMap<Id, Task> {
     let file = fs::read_to_string(file).expect("Unable to read file");
-    let mut tasks: Vec<Task> = serde_json::from_str(&file).expect("Unable to parse file");
-    tasks.sort_by(|a, b| a.date.cmp(&b.date));
-    tasks
+    let tasks_map : HashMap<Id, Task>  = serde_json::from_str(&file).expect("Unable to parse database file");
+    tasks_map
 }
 
 pub fn save_tasks(file: PathBuf, app: &App) {

@@ -1,15 +1,23 @@
-use crate::{configuration::{Settings, get_db_file}, task::Task, utils};
+use std::collections::HashMap;
+
+use crate::{
+    configuration::{get_db_file, Settings},
+    task::Task,
+    utils,
+};
+
+pub type Id = usize;
 
 pub struct App {
-    pub tasks: Vec<Task>,
+    pub tasks: HashMap<Id, Task>,
     pub settings: Settings,
     pub current_id: usize,
 }
 
 impl App {
     pub fn new(settings: Settings) -> App {
-        let tasks = utils::load_tasks(get_db_file());
-        let current_id = tasks.iter().map(|t| t.id.unwrap()).max().unwrap_or(0);
+        let tasks: HashMap<Id, Task> = utils::load_tasks(get_db_file());
+        let current_id = tasks.iter().map(|(&k, _)| k).max().unwrap_or(0);
         App {
             tasks,
             settings,
@@ -17,55 +25,47 @@ impl App {
         }
     }
 
+    pub fn get_task(&self, id: Id) -> Option<&Task> {
+        self.tasks.get(&id)
+    }
+
     pub fn save_state(&mut self) {
-        self.tasks.sort_by(|a, b| a.date.cmp(&b.date));
         utils::save_tasks(get_db_file(), self);
     }
 
-    pub fn get_task(&self, id: usize) -> Option<&Task> {
-        self.tasks.iter().find(|t| t.id.unwrap() == id)
-    }
-
-    pub fn add_task(&mut self, mut t: Task) -> Task {
-        if t.id.is_none() {
-        t.id = Some(self.get_next_id());
-        }
-        self.tasks.push(t.clone());
+    pub fn add_task(&mut self, t: Task) -> Id {
+        let new_id = self.get_next_id();
+        self.tasks.insert(new_id, t);
         self.save_state();
-        t
+        new_id
     }
 
-    pub fn delete_task(&mut self, id: usize) -> Option<Task> {
-        let deleted_idx = self.tasks.iter().position(|t| t.id.unwrap() == id)?;
-        let deleted_task = self.tasks.get(deleted_idx).cloned();
-        self.tasks.remove(deleted_idx);
+    pub fn delete_task(&mut self, id: usize) -> Option<Id> {
+        self.tasks.remove(&id)?;
         self.save_state();
-        deleted_task
+        Some(id)
     }
 
-    pub fn set_complete(&mut self, id: usize, complete: bool) -> Option<Task> {
-        let idx = self.tasks.iter().position(|t| t.id.unwrap() == id)?;
-        let new_task;
-        if complete {
-            let possible_new_task = self.tasks[idx].set_complete();
+    pub fn set_complete(&mut self, id: usize, complete: bool) -> Option<Id> {
+        let new_task_id = if complete {
+            let possible_new_task = self.tasks.get_mut(&id)?.set_complete();
             if let Some(possible_new_task) = possible_new_task {
-                new_task = self.add_task(possible_new_task);
                 self.delete_task(id);
+                self.add_task(possible_new_task)
             } else {
-                new_task = self.tasks[idx].clone();
+                id
             }
         } else {
-            self.tasks[idx].set_incomplete();
-            new_task = self.tasks[idx].clone();
-        }
+            self.tasks.get_mut(&id)?.set_incomplete();
+            id
+        };
 
         self.save_state();
-        Some(new_task)
+        Some(new_task_id)
     }
 
-    pub fn toggle_complete_task(&mut self, id: usize) -> Option<Task> {
-        let idx = self.tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
-        let complete = self.tasks[idx].complete;
+    pub fn toggle_complete_task(&mut self, id: usize) -> Option<Id> {
+        let complete = self.tasks.get(&id)?.complete;
         self.set_complete(id, !complete)
     }
 

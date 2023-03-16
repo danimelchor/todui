@@ -32,14 +32,17 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         CompleteStatus::Complete => true,
         CompleteStatus::Incomplete => false,
     };
-    let task = app.set_complete(id, complete_bool);
 
-    if task.is_none() {
-        println!("Task with id {} not found", id);
+    let task_id = app.set_complete(id, complete_bool);
+    match task_id {
+        Some(task_id) => {
+            let task = app.get_task(task_id).unwrap();
+            cli_utils::print_task(task_id, &task, format, &app.settings);
+        },
+        None => {
+            println!("Task with id {} not found", id);
+        }
     }
-
-    let task = task.unwrap();
-    cli_utils::print_task(&task, format, &app.settings);
 
     Ok(())
 }

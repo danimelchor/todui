@@ -106,13 +106,6 @@ impl Task {
             self.set_complete()
         }
     }
-
-    pub fn get_id(&self) -> usize {
-        match self.id {
-            Some(id) => id,
-            None => panic!("Tasks should always have an ID once added"),
-        }
-    }
 }
 
 impl Default for Task {

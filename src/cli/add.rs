@@ -40,6 +40,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         description,
         url,
     } = args;
+
     let mut task_form = TaskForm {
         id: None,
         name,
@@ -49,10 +50,10 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         description: description.unwrap_or("".to_string()),
         url: url.unwrap_or("".to_string()),
     };
-    let task = task_form.submit(&app.settings)?;
-    let task = app.add_task(task);
 
-    cli_utils::print_task(&task, format, &app.settings);
+    let task = task_form.submit(&app.settings)?;
+    let task_id = app.add_task(task.clone());
+    cli_utils::print_task(task_id, &task, format, &app.settings);
 
     Ok(())
 }

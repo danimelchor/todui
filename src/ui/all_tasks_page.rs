@@ -39,32 +39,31 @@ impl AllTasksPage {
 
     /// Returns the tasks that should be displayed on the page
     pub fn visible_tasks(&self) -> Vec<Task> {
-        let tasks = self.app.borrow_mut().tasks.clone();
+        let app = self.app.borrow_mut();
+        let tasks: Vec<&Task> = app.tasks.values().collect();
 
-        // Filter out hidden tasks
-        let tasks = if !self.show_hidden {
-            tasks
-                .iter()
-                .filter(|t| !t.complete)
-                .map(|t| t.clone())
-                .collect::<Vec<Task>>()
+        let tasks: Vec<&Task> = if !self.show_hidden {
+            tasks.into_iter().filter(|t| !t.complete).collect()
         } else {
             tasks
         };
 
         // Filter out tasks not in the current group
-        let tasks = if let Some(group) = &self.current_group {
+        let tasks: Vec<&Task> = if let Some(group) = &self.current_group {
             tasks
-                .iter()
+                .into_iter()
                 .filter(|t| t.group.is_some())
                 .filter(|t| t.group.as_ref().unwrap() == group)
-                .map(|t| t.clone())
-                .collect::<Vec<Task>>()
+                .collect()
         } else {
             tasks
         };
 
         tasks
+            .into_iter()
+            .cloned()
+            .sorted_by(|a, b| a.date.cmp(&b.date))
+            .collect()
     }
 
     /// Toggles the complete status of the currently selected task
@@ -96,7 +95,7 @@ impl AllTasksPage {
                 }
             }
             None => {
-                if tasks.len() > 0 {
+                if !tasks.is_empty() {
                     self.current_id = Some(tasks[0].id.unwrap());
                 }
             }
@@ -108,12 +107,12 @@ impl AllTasksPage {
         match self.current_id {
             Some(id) => {
                 let idx = tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
-                if idx > 0 {
+                if !tasks.is_empty() {
                     self.current_id = Some(tasks[idx - 1].id.unwrap());
                 }
             }
             None => {
-                if tasks.len() > 0 {
+                if !tasks.is_empty() {
                     self.current_id = Some(tasks[tasks.len() - 1].id.unwrap());
                 }
             }
@@ -152,7 +151,10 @@ impl AllTasksPage {
                 }
             }
         }
-        self.app.borrow_mut().settings.set_current_group(self.current_group.clone());
+        self.app
+            .borrow_mut()
+            .settings
+            .set_current_group(self.current_group.clone());
     }
 
     pub fn prev_group(&mut self) {
@@ -169,12 +171,14 @@ impl AllTasksPage {
             }
             None => {}
         }
-        self.app.borrow_mut().settings.set_current_group(self.current_group.clone());
+        self.app
+            .borrow_mut()
+            .settings
+            .set_current_group(self.current_group.clone());
     }
 
     pub fn groups(&self) -> Vec<Vec<Task>> {
         self.visible_tasks()
-            .clone()
             .into_iter()
             .group_by(|t| t.date.date_naive())
             .into_iter()
@@ -185,21 +189,14 @@ impl AllTasksPage {
     pub fn move_closest(&mut self) {
         let current_date: Option<DateTime<Local>> = {
             match self.current_id {
-                Some(id) => {
-                    let app = self.app.borrow();
-                    let task = app.get_task(id);
-                    match task {
-                        Some(task) => Some(task.date),
-                        None => None,
-                    }
-                }
+                Some(id) => self.app.borrow().get_task(id).map(|t| t.date),
                 None => None,
             }
         };
 
         // Move to next task if any, else previous, else none
         let tasks = self.visible_tasks();
-        let current_date = current_date.unwrap_or_else(|| Local::now());
+        let current_date = current_date.unwrap_or_else(Local::now);
         let closest = tasks.iter().min_by_key(|t| {
             t.date
                 .signed_duration_since(current_date)
@@ -229,12 +226,9 @@ impl AllTasksPage {
             .app
             .borrow()
             .tasks
-            .iter()
-            .filter(|t| t.group.is_some())
-            .map(|t| t.group.clone().unwrap())
-            .into_iter()
+            .values()
+            .filter_map(|t| t.group.clone())
             .unique()
-            .map(|g| g.to_string())
             .collect::<Vec<String>>();
         groups.append(&mut other_groups);
         groups
@@ -296,12 +290,7 @@ where
         let groups = self.get_groups();
         let titles = groups
             .iter()
-            .map(|t| {
-                Spans::from(Span::styled(
-                    t,
-                    Style::default().fg(Color::White),
-                ))
-            })
+            .map(|t| Spans::from(Span::styled(t, Style::default().fg(Color::White))))
             .collect();
         let current_group_idx = match &self.current_group {
             None => 0,
@@ -311,7 +300,11 @@ where
             .block(Block::default().borders(Borders::ALL).title("Groups"))
             .select(current_group_idx)
             // .style(Style::default().fg(self.get_primary_color()))
-            .highlight_style(Style::default().fg(self.get_secondary_color()).add_modifier(Modifier::BOLD));
+            .highlight_style(
+                Style::default()
+                    .fg(self.get_secondary_color())
+                    .add_modifier(Modifier::BOLD),
+            );
         f.render_widget(tabs, chunks[0]);
 
         // Build list
