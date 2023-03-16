@@ -41,6 +41,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         url,
     } = args;
     let mut task_form = TaskForm {
+        id: None,
         name,
         date: date.unwrap_or("".to_string()),
         repeats: repeats.unwrap_or("".to_string()),

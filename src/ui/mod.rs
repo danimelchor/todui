@@ -130,11 +130,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             let settings = &app.settings;
                             let form_result = task_page.task_form.submit(settings);
                             match form_result {
-                                Ok(new_taks) => {
+                                Ok(new_task) => {
                                     if let Some(task_id) = task_page.editing_task {
                                         app.delete_task(task_id);
                                     }
-                                    app.add_task(new_taks);
+                                    app.add_task(new_task.clone());
+
+                                    // Drop app since we need it mutable in the next line
+                                    drop(app);
+                                    if new_task.group != all_tasks_page.get_current_group() {
+                                        all_tasks_page.set_group(new_task.group.clone());
+                                    }
                                     current_page = UIPage::AllTasks;
                                 }
                                 Err(e) => {
@@ -147,6 +153,31 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                     NewTaskInputMode::Insert => match key.code {
                         _ if code == keybindings.enter_normal_mode => {
                             task_page.input_mode = NewTaskInputMode::Normal;
+                        }
+                        _ if code == keybindings.save_changes => {
+                            // DUPLICATED - TODO: refactor
+                            let mut app = task_page.app.borrow_mut();
+                            let settings = &app.settings;
+                            let form_result = task_page.task_form.submit(settings);
+                            match form_result {
+                                Ok(new_task) => {
+                                    if let Some(task_id) = task_page.editing_task {
+                                        app.delete_task(task_id);
+                                    }
+                                    app.add_task(new_task.clone());
+
+                                    // Drop app since we need it mutable in the next line
+                                    drop(app);
+                                    if new_task.group != all_tasks_page.get_current_group() {
+                                        all_tasks_page.set_group(new_task.group.clone());
+                                    }
+                                    current_page = UIPage::AllTasks;
+                                }
+                                Err(e) => {
+                                    task_page.error = Some(e.to_string());
+                                }
+                            }
+                            // END DUPLICATED
                         }
                         KeyCode::Char(c) => task_page.add_char(c),
                         KeyCode::Backspace => task_page.remove_char(),

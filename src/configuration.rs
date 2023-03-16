@@ -319,6 +319,7 @@ impl Colors {
 pub struct Settings {
     pub date_formats: DateFormats,
     pub show_complete: bool,
+    pub current_group: Option<String>,
     pub icons: Icons,
     pub colors: Colors,
     pub keybindings: KeyBindings,
@@ -327,6 +328,11 @@ pub struct Settings {
 impl Settings {
     pub fn set_show_complete(&mut self, show_complete: bool) {
         self.show_complete = show_complete;
+        self.save_state();
+    }
+
+    pub fn set_current_group(&mut self, group: Option<String>) {
+        self.current_group = group;
         self.save_state();
     }
 
@@ -341,6 +347,7 @@ impl Settings {
 pub struct SettingsBuilder {
     pub date_formats: DateFormats,
     pub show_complete: bool,
+    pub current_group: Option<String>,
     pub icons: Icons,
     pub colors: Colors,
     pub keybindings: KeyBindings,
@@ -394,6 +401,7 @@ impl SettingsBuilder {
         Settings {
             date_formats: self.date_formats.clone(),
             show_complete: self.show_complete,
+            current_group: self.current_group.clone(),
             icons: self.icons.clone(),
             colors: self.colors.clone(),
             keybindings: self.keybindings.clone(),
@@ -405,6 +413,7 @@ impl Default for SettingsBuilder {
     fn default() -> Self {
         SettingsBuilder {
             show_complete: true,
+            current_group: None,
             icons: Icons::default(),
             date_formats: DateFormats::new(),
             colors: Colors::default(),

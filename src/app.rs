@@ -27,7 +27,9 @@ impl App {
     }
 
     pub fn add_task(&mut self, mut t: Task) -> Task {
+        if t.id.is_none() {
         t.id = Some(self.get_next_id());
+        }
         self.tasks.push(t.clone());
         self.save_state();
         t

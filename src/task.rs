@@ -34,6 +34,10 @@ pub struct Task {
 }
 
 impl Task {
+    pub fn set_id(&mut self, id: Option<usize>) {
+        self.id = id;
+    }
+
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }

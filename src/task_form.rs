@@ -8,6 +8,7 @@ use crate::utils;
 
 #[derive(Default)]
 pub struct TaskForm {
+    pub id: Option<usize>,
     pub name: String,
     pub date: String,
     pub repeats: String,
@@ -19,6 +20,7 @@ pub struct TaskForm {
 impl TaskForm {
     pub fn from_task(task: &Task, settings: &Settings) -> Self {
         Self {
+            id: task.id,
             name: task.name.to_string(),
             date: utils::date_to_input_str(&task.date, settings),
             repeats: task.repeats.to_string(),
@@ -37,7 +39,8 @@ impl TaskForm {
         if self.name.is_empty() {
             return Err(anyhow::anyhow!("Task name cannot be empty"));
         }
-
+    
+        task.set_id(self.id);
         task.set_name(self.name.clone());
         task.set_date(date);
         task.set_repeats(repeat);

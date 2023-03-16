@@ -21,16 +21,18 @@ pub struct AllTasksPage {
     pub show_hidden: bool,
     pub current_id: Option<usize>,
     pub app: Rc<RefCell<App>>,
-    pub current_group: Option<String>,
+
+    current_group: Option<String>,
 }
 
 impl AllTasksPage {
     pub fn new(app: Rc<RefCell<App>>) -> AllTasksPage {
         let show_hidden = app.borrow().settings.show_complete;
+        let current_group = app.borrow().settings.current_group.clone();
         AllTasksPage {
             show_hidden,
             current_id: None,
-            current_group: None,
+            current_group,
             app,
         }
     }
@@ -118,6 +120,22 @@ impl AllTasksPage {
         }
     }
 
+    pub fn get_current_group(&self) -> Option<String> {
+        self.current_group.clone()
+    }
+
+    pub fn set_group(&mut self, group: Option<String>) {
+        self.current_group = group.clone();
+        if self.current_id.is_some() {
+            let id = self.current_id.unwrap();
+            let visible_tasks = self.visible_tasks();
+            if !visible_tasks.iter().any(|t| t.id.unwrap() == id) {
+                self.current_id = None;
+            }
+        }
+        self.app.borrow_mut().settings.set_current_group(group);
+    }
+
     pub fn next_group(&mut self) {
         let groups = self.get_groups();
         self.current_id = None;
@@ -134,6 +152,7 @@ impl AllTasksPage {
                 }
             }
         }
+        self.app.borrow_mut().settings.set_current_group(self.current_group.clone());
     }
 
     pub fn prev_group(&mut self) {
@@ -150,6 +169,7 @@ impl AllTasksPage {
             }
             None => {}
         }
+        self.app.borrow_mut().settings.set_current_group(self.current_group.clone());
     }
 
     pub fn groups(&self) -> Vec<Vec<Task>> {
@@ -290,7 +310,7 @@ where
         let tabs = Tabs::new(titles)
             .block(Block::default().borders(Borders::ALL).title("Groups"))
             .select(current_group_idx)
-            .style(Style::default().fg(self.get_primary_color()))
+            // .style(Style::default().fg(self.get_primary_color()))
             .highlight_style(Style::default().fg(self.get_secondary_color()).add_modifier(Modifier::BOLD));
         f.render_widget(tabs, chunks[0]);
 
