@@ -56,7 +56,7 @@ impl DeleteTaskPage {
         self.task_form.pop();
     }
 
-    pub fn submit(&self) -> bool {
+    pub fn submit(&mut self) -> bool {
         if self.task_form == self.get_task_name() {
             self.remove_task();
             true
