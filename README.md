@@ -93,8 +93,8 @@ The default config is the following:
     "enter_normal_mode": "Esc",
     "go_back": "b",
     "open_link": "Enter",
-    "next_tab": "l",
-    "prev_tab": "h"
+    "next_group": "l",
+    "prev_group": "h"
   }
 }
 ```

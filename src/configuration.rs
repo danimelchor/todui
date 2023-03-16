@@ -200,9 +200,9 @@ pub struct KeyBindings {
     #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
     pub open_link: KeyCode,
     #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub next_tab: KeyCode,
+    pub next_group: KeyCode,
     #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
-    pub prev_tab: KeyCode,
+    pub prev_group: KeyCode,
 }
 
 impl KeyBindings {
@@ -257,8 +257,8 @@ impl Default for KeyBindings {
             enter_normal_mode: KeyCode::Esc,
             go_back: KeyCode::Char('b'),
             open_link: KeyCode::Enter,
-            next_tab: KeyCode::Char('l'),
-            prev_tab: KeyCode::Char('h'),
+            next_group: KeyCode::Char('l'),
+            prev_group: KeyCode::Char('h'),
         }
     }
 }

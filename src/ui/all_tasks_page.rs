@@ -118,7 +118,7 @@ impl AllTasksPage {
         }
     }
 
-    pub fn next_tab(&mut self) {
+    pub fn next_group(&mut self) {
         let groups = self.get_groups();
         self.current_id = None;
         match &self.current_group {
@@ -136,7 +136,7 @@ impl AllTasksPage {
         }
     }
 
-    pub fn prev_tab(&mut self) {
+    pub fn prev_group(&mut self) {
         let groups = self.get_groups();
         self.current_id = None;
         match &self.current_group {

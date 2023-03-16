@@ -106,11 +106,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             current_page = UIPage::EditTask;
                         }
                     }
-                    _ if code == keybindings.next_tab => {
-                        all_tasks_page.next_tab();
+                    _ if code == keybindings.next_group => {
+                        all_tasks_page.next_group();
                     }
-                    _ if code == keybindings.prev_tab => {
-                        all_tasks_page.prev_tab();
+                    _ if code == keybindings.prev_group => {
+                        all_tasks_page.prev_group();
                     }
                     _ => {}
                 },
