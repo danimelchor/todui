@@ -3,14 +3,13 @@ use crate::repeat::Repeat;
 use crate::task::Task;
 use crate::ui::Page;
 use crate::utils;
-use anyhow::Result;
 use chrono::{DateTime, Local, TimeZone};
 use itertools::Itertools;
 use std::cell::RefCell;
 use std::rc::Rc;
 use tui::layout::{Direction, Rect};
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table};
+use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table, Tabs};
 use tui::{
     backend::Backend,
     layout::{Constraint, Layout},
@@ -36,6 +35,7 @@ impl AllTasksPage {
         }
     }
 
+    /// Returns the tasks that should be displayed on the page
     pub fn visible_tasks(&self) -> Vec<Task> {
         let tasks = self.app.borrow_mut().tasks.clone();
 
@@ -65,6 +65,7 @@ impl AllTasksPage {
         tasks
     }
 
+    /// Toggles the complete status of the currently selected task
     pub fn toggle_selected(&mut self) {
         if let Some(task_id) = self.current_id {
             self.app.borrow_mut().toggle_complete_task(task_id);
@@ -75,6 +76,7 @@ impl AllTasksPage {
         }
     }
 
+    /// Deletes the currently selected task
     pub fn delete_selected(&mut self) {
         if let Some(task_id) = self.current_id {
             self.app.borrow_mut().delete_task(task_id);
@@ -113,6 +115,40 @@ impl AllTasksPage {
                     self.current_id = Some(tasks[tasks.len() - 1].id.unwrap());
                 }
             }
+        }
+    }
+
+    pub fn next_tab(&mut self) {
+        let groups = self.get_groups();
+        self.current_id = None;
+        match &self.current_group {
+            Some(group) => {
+                let idx = groups.iter().position(|g| g == group).unwrap();
+                if idx < groups.len() - 1 {
+                    self.current_group = Some(groups[idx + 1].clone());
+                }
+            }
+            None => {
+                if groups.len() > 1 {
+                    self.current_group = Some(groups[1].clone());
+                }
+            }
+        }
+    }
+
+    pub fn prev_tab(&mut self) {
+        let groups = self.get_groups();
+        self.current_id = None;
+        match &self.current_group {
+            Some(group) => {
+                let idx = groups.iter().position(|g| g == group).unwrap();
+                if idx > 1 {
+                    self.current_group = Some(groups[idx - 1].clone());
+                } else {
+                    self.current_group = None;
+                }
+            }
+            None => {}
         }
     }
 
@@ -167,6 +203,23 @@ impl AllTasksPage {
         }
     }
 
+    pub fn get_groups(&self) -> Vec<String> {
+        let mut groups = vec!["All Tasks".to_string()];
+        let mut other_groups = self
+            .app
+            .borrow()
+            .tasks
+            .iter()
+            .filter(|t| t.group.is_some())
+            .map(|t| t.group.clone().unwrap())
+            .into_iter()
+            .unique()
+            .map(|g| g.to_string())
+            .collect::<Vec<String>>();
+        groups.append(&mut other_groups);
+        groups
+    }
+
     pub fn get_complete_icon(&self, complete: bool) -> String {
         self.app.borrow().settings.icons.get_complete_icon(complete)
     }
@@ -200,6 +253,10 @@ impl AllTasksPage {
         self.app.borrow().settings.colors.primary_color
     }
 
+    pub fn get_secondary_color(&self) -> Color {
+        self.app.borrow().settings.colors.secondary_color
+    }
+
     pub fn get_accent_color(&self) -> Color {
         self.app.borrow().settings.colors.accent_color
     }
@@ -211,11 +268,38 @@ where
 {
     fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
         let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(100)].as_ref())
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
             .split(area);
 
+        // Render tabs
+        let groups = self.get_groups();
+        let titles = groups
+            .iter()
+            .map(|t| {
+                Spans::from(Span::styled(
+                    t,
+                    Style::default().fg(Color::White),
+                ))
+            })
+            .collect();
+        let current_group_idx = match &self.current_group {
+            None => 0,
+            Some(group) => groups.iter().position(|g| g == group).unwrap(),
+        };
+        let tabs = Tabs::new(titles)
+            .block(Block::default().borders(Borders::ALL).title("Groups"))
+            .select(current_group_idx)
+            .style(Style::default().fg(self.get_primary_color()))
+            .highlight_style(Style::default().fg(self.get_secondary_color()).add_modifier(Modifier::BOLD));
+        f.render_widget(tabs, chunks[0]);
+
         // Build list
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(100)].as_ref())
+            .split(chunks[1]);
+
         let mut rows = vec![];
         for group in self.groups() {
             // Group title
@@ -245,7 +329,7 @@ where
                 let title = format!("{} {} {} ", complete_icon, item.name, recurring_icon);
                 let title_style = match (item.complete, self.current_id) {
                     (_, Some(task_id)) if task_id == item.id.unwrap() => Style::default()
-                        .fg(self.get_primary_color())
+                        .fg(self.get_secondary_color())
                         .add_modifier(Modifier::BOLD),
                     (true, _) => Style::default().fg(Color::DarkGray),
                     _ => Style::default().fg(Color::White),

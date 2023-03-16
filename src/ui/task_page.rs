@@ -35,7 +35,7 @@ impl TaskPage {
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
             error: None,
-            num_fields: 5,
+            num_fields: 6,
             editing_task: None,
             app,
         }
@@ -50,7 +50,7 @@ impl TaskPage {
             input_mode: NewTaskInputMode::Normal,
             current_idx: 0,
             error: None,
-            num_fields: 5,
+            num_fields: 6,
             editing_task: Some(task_id),
             app,
         }
@@ -73,8 +73,9 @@ impl TaskPage {
             0 => self.task_form.name.push(c),
             1 => self.task_form.date.push(c),
             2 => self.task_form.repeats.push(c),
-            3 => self.task_form.description.push(c),
-            4 => self.task_form.url.push(c),
+            3 => self.task_form.group.push(c),
+            4 => self.task_form.description.push(c),
+            5 => self.task_form.url.push(c),
             _ => {}
         };
     }
@@ -84,8 +85,9 @@ impl TaskPage {
             0 => self.task_form.name.pop(),
             1 => self.task_form.date.pop(),
             2 => self.task_form.repeats.pop(),
-            3 => self.task_form.description.pop(),
-            4 => self.task_form.url.pop(),
+            3 => self.task_form.group.pop(),
+            4 => self.task_form.description.pop(),
+            5 => self.task_form.url.pop(),
             _ => None,
         };
     }
@@ -172,6 +174,7 @@ where
                     Constraint::Length(3),
                     Constraint::Length(3),
                     Constraint::Length(3),
+                    Constraint::Length(3),
                 ]
                 .as_ref(),
             )
@@ -226,27 +229,36 @@ where
             ));
         f.render_widget(input, chunks[3]);
 
-        // Description
-        let curr_text = self.task_form.description.clone();
+        // Group
+        let curr_text = self.task_form.group.to_string();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(3))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Description"),
-            );
+            .block(Block::default().borders(Borders::ALL).title(
+                "Group",
+            ));
         f.render_widget(input, chunks[4]);
-        
+
         // Description
-        let curr_text = self.task_form.url.clone();
+        let curr_text = self.task_form.description.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(4))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("URL"),
+                    .title("Description"),
             );
         f.render_widget(input, chunks[5]);
+        
+        // Description
+        let curr_text = self.task_form.url.clone();
+        let input = Paragraph::new(curr_text.as_ref())
+            .style(self.border_style(5))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("URL"),
+            );
+        f.render_widget(input, chunks[6]);
 
         // Place cursor
         if focused {
@@ -264,12 +276,16 @@ where
                     chunks[3].y + 1,
                 ),
                 3 => f.set_cursor(
-                    chunks[4].x + self.task_form.description.width() as u16 + 1,
+                    chunks[4].x + self.task_form.group.width() as u16 + 1,
                     chunks[4].y + 1,
                 ),
                 4 => f.set_cursor(
-                    chunks[5].x + self.task_form.url.width() as u16 + 1,
+                    chunks[5].x + self.task_form.description.width() as u16 + 1,
                     chunks[5].y + 1,
+                ),
+                5 => f.set_cursor(
+                    chunks[6].x + self.task_form.url.width() as u16 + 1,
+                    chunks[6].y + 1,
                 ),
                 _ => {}
             }
@@ -280,7 +296,7 @@ where
             let error = Paragraph::new(error.as_ref())
                 .style(Style::default().fg(Color::Red))
                 .block(Block::default().borders(Borders::ALL).title("Error"));
-            f.render_widget(error, chunks[6]);
+            f.render_widget(error, chunks[7]);
         }
     }
 }

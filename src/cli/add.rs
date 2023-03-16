@@ -16,6 +16,9 @@ pub struct Args {
     /// How often the task repeats
     #[arg(long)]
     repeats: Option<String>,
+    /// The group the task belongs to
+    #[arg(long)]
+    group: Option<String>,
     /// A description or url for your task
     #[arg(long)]
     description: Option<String>,
@@ -33,6 +36,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         format,
         date,
         repeats,
+        group,
         description,
         url,
     } = args;
@@ -40,6 +44,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         name,
         date: date.unwrap_or("".to_string()),
         repeats: repeats.unwrap_or("".to_string()),
+        group: group.unwrap_or("".to_string()),
         description: description.unwrap_or("".to_string()),
         url: url.unwrap_or("".to_string()),
     };

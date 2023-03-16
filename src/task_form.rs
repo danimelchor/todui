@@ -11,6 +11,7 @@ pub struct TaskForm {
     pub name: String,
     pub date: String,
     pub repeats: String,
+    pub group: String,
     pub description: String,
     pub url: String,
 }
@@ -21,10 +22,12 @@ impl TaskForm {
             name: task.name.to_string(),
             date: utils::date_to_input_str(&task.date, settings),
             repeats: task.repeats.to_string(),
+            group: task.group.clone().unwrap_or_default(),
             description: task.description.clone().unwrap_or_default(),
             url: task.url.clone().unwrap_or_default(),
         }
     }
+
     pub fn submit(&mut self, settings: &Settings) -> Result<Task> {
         let mut task = Task::default();
 
@@ -38,6 +41,9 @@ impl TaskForm {
         task.set_name(self.name.clone());
         task.set_date(date);
         task.set_repeats(repeat);
+        if !self.group.is_empty() {
+            task.set_group(self.group.clone());
+        }
         if !self.description.is_empty() {
             task.set_description(self.description.clone());
         }

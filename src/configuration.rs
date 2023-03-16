@@ -199,6 +199,10 @@ pub struct KeyBindings {
     pub go_back: KeyCode,
     #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
     pub open_link: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub next_tab: KeyCode,
+    #[serde(deserialize_with = "deserialize_key", serialize_with = "serialize_key")]
+    pub prev_tab: KeyCode,
 }
 
 impl KeyBindings {
@@ -244,7 +248,7 @@ impl Default for KeyBindings {
             down: KeyCode::Char('j'),
             up: KeyCode::Char('k'),
             complete_task: KeyCode::Char('x'),
-            toggle_completed_tasks: KeyCode::Char('h'),
+            toggle_completed_tasks: KeyCode::Char('c'),
             delete_task: KeyCode::Char('d'),
             new_task: KeyCode::Char('n'),
             edit_task: KeyCode::Char('e'),
@@ -253,6 +257,8 @@ impl Default for KeyBindings {
             enter_normal_mode: KeyCode::Esc,
             go_back: KeyCode::Char('b'),
             open_link: KeyCode::Enter,
+            next_tab: KeyCode::Char('l'),
+            prev_tab: KeyCode::Char('h'),
         }
     }
 }
