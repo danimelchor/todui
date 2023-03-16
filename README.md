@@ -36,6 +36,13 @@ Options:
   -V, --version  Print version
 ```
 
+For example:
+
+```
+$ todo-rs ls --format json --date-filter today     
+[{"id":108,"name":"LF112 Homework","date":"2023-03-16T23:59:59-04:00","repeats":{"DaysOfWeek":["Sunday","Tuesday","Thursday"]},"group":"School","description":null,"url":"https://google.com","complete":false},{"id":114,"name":"LF112 Async Thursday","date":"2023-03-16T23:59:59-04:00","repeats":"Weekly","group":"School","description":null,"url":"https://google.com","complete":false},{"id":107,"name":"EN221 Recitation","date":"2023-03-16T23:59:59-04:00","repeats":{"DaysOfWeek":["Tuesday","Thursday"]},"group":"School","description":null,"url":"https://google.com","complete":false}]
+```
+
 ## Installation
 
 Use rusts package manger to install todo-rs.
@@ -69,6 +76,7 @@ The default config is the following:
     "input_datetime_hint": "DD-MM-YYYY HH:MM"
   },
   "show_complete": true,
+  "current_group": "School",
   "icons": {
     "complete": "󰄴",
     "incomplete": "󰝦",
@@ -115,9 +123,9 @@ All key bindings can be modified in the config file. The defaults have been chos
 | `x` | Marks the task as completed | 
 | `c` | Toggles hiding completed tasks |
 | `d` | Deletes the selected task forever|
-| `Enter` | If the task has an associated link, it opens it in your preferred browser |
 | `n` | Opens the new task page |
 | `e` | Focuses the task editing panel |
+| `Enter` | If the task has an associated link, it opens it in your preferred browser |
 | `l` | Select next group |
 | `h` | Select previous group |
 
@@ -129,9 +137,9 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 
 | Key Bindings | Description |
 | -------- | ---------- |
+| `q` | Quit the application |
 | `j` | Move down to the next field |
 | `k` | Move up to the previous field |
-| `q` | Quit the application |
 | `i` | Enter insert mode |
 | `b` | Go back to the list of tasks panel |
 | `Enter` | Save changes or add the new task |
