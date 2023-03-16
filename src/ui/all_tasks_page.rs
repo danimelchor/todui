@@ -29,12 +29,23 @@ impl AllTasksPage {
     pub fn new(app: Rc<RefCell<App>>) -> AllTasksPage {
         let show_hidden = app.borrow().settings.show_complete;
         let current_group = app.borrow().settings.current_group.clone();
-        AllTasksPage {
+
+        let mut atp = AllTasksPage {
             show_hidden,
             current_id: None,
             current_group,
             app,
+        };
+
+        let any_in_group = atp
+            .visible_tasks()
+            .iter()
+            .any(|t| t.group == atp.current_group);
+        if !any_in_group {
+            atp.set_group(None);
         }
+
+        atp
     }
 
     /// Returns the tasks that should be displayed on the page
@@ -107,7 +118,7 @@ impl AllTasksPage {
         match self.current_id {
             Some(id) => {
                 let idx = tasks.iter().position(|t| t.id.unwrap() == id).unwrap();
-                if !tasks.is_empty() {
+                if idx > 0 {
                     self.current_id = Some(tasks[idx - 1].id.unwrap());
                 }
             }

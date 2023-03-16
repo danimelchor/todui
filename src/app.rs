@@ -33,9 +33,20 @@ impl App {
         utils::save_tasks(get_db_file(), self);
     }
 
-    pub fn add_task(&mut self, t: Task) -> Id {
-        let new_id = self.get_next_id();
-        self.tasks.insert(new_id, t);
+    pub fn add_task(&mut self, mut t: Task) -> Id {
+        let new_id = match t.id {
+            Some(id) => {
+                self.tasks.insert(id, t);
+                self.save_state();
+                id
+            }
+            None => {
+                let new_id = self.get_next_id();
+                t.id = Some(new_id);
+                self.tasks.insert(new_id, t);
+                new_id
+            },
+        };
         self.save_state();
         new_id
     }

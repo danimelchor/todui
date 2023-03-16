@@ -91,11 +91,33 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             task_page = TaskPage::new_from_task(Rc::clone(&app), task_id);
                         }
                     }
-                    _ if code == keybindings.complete_task => all_tasks_page.toggle_selected(),
+                    _ if code == keybindings.complete_task => {
+                        all_tasks_page.toggle_selected();
+
+                        // Check that there are still visible tasks in group
+                        let any = all_tasks_page
+                            .visible_tasks()
+                            .iter()
+                            .any(|t| t.group == all_tasks_page.get_current_group());
+                        if !any {
+                            all_tasks_page.set_group(None);
+                        }
+                    }
                     _ if code == keybindings.toggle_completed_tasks => {
                         all_tasks_page.toggle_hidden()
                     }
-                    _ if code == keybindings.delete_task => all_tasks_page.delete_selected(),
+                    _ if code == keybindings.delete_task => {
+                        all_tasks_page.delete_selected();
+
+                        // Check that there are still visible tasks in group
+                        let any = all_tasks_page
+                            .visible_tasks()
+                            .iter()
+                            .any(|t| t.group == all_tasks_page.get_current_group());
+                        if !any {
+                            all_tasks_page.set_group(None);
+                        }
+                    }
                     _ if code == keybindings.open_link => all_tasks_page.open_selected_link(),
                     _ if code == keybindings.new_task => {
                         current_page = UIPage::NewTask;
@@ -126,7 +148,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             current_page = UIPage::AllTasks;
                         }
                         _ if code == keybindings.save_changes => {
-                            let mut app = task_page.app.borrow_mut();
+                            let mut app = app.borrow_mut();
                             let settings = &app.settings;
                             let form_result = task_page.task_form.submit(settings);
                             match form_result {
