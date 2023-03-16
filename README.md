@@ -2,7 +2,8 @@
 
 ## TUI
 
-https://user-images.githubusercontent.com/24496843/225213938-f2ade4b2-56c0-489c-ab5b-65c191b8c7bd.mp4
+https://user-images.githubusercontent.com/24496843/225743483-2cbbcdda-9957-4c01-b9c1-aed1fc0ecb19.mp4
+
 
 ## Features
 
