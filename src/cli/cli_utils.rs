@@ -1,14 +1,12 @@
-use std::collections::HashMap;
-
 use super::formats::Format;
-use crate::{app::Id, configuration::Settings, task::Task, utils};
+use crate::{configuration::Settings, task::Task, utils};
 
-pub fn print_task(task_id: Id, task: &Task, format: Option<Format>, settings: &Settings) {
+pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
     match format {
         Some(Format::Json) => println!("{}", serde_json::to_string(&task).unwrap()),
         Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&task).unwrap()),
         _ => {
-            println!("{}\t{}", task_id, task.name);
+            println!("{}\t{}", task.id.unwrap(), task.name);
             println!(
                 "Date:\t{}",
                 utils::date_to_display_str(&task.date, settings)
@@ -28,7 +26,7 @@ pub fn print_task(task_id: Id, task: &Task, format: Option<Format>, settings: &S
 }
 
 pub fn print_tasks(
-    tasks: HashMap<Id, Task>,
+    tasks: Vec<&Task>,
     format: Option<Format>,
     show_descriptions: bool,
     show_urls: bool,
@@ -38,19 +36,19 @@ pub fn print_tasks(
         Some(Format::Json) => println!("{}", serde_json::to_string(&tasks).unwrap()),
         Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&tasks).unwrap()),
         _ => {
-            let longest_name = tasks.values().map(|t| t.name.len()).max().unwrap_or(0);
+            let longest_name = tasks.iter().map(|t| t.name.len()).max().unwrap_or(0);
             let longest_date = tasks
-                .values()
+                .iter()
                 .map(|t| utils::date_to_display_str(&t.date, settings).len())
                 .max()
                 .unwrap_or(0);
             let longest_repeat = tasks
-                .values()
+                .iter()
                 .map(|t| t.repeats.to_string().len())
                 .max()
                 .unwrap_or(0);
             let longest_group = tasks
-                .values()
+                .iter()
                 .map(|t| t.group.as_deref().unwrap_or_default().len())
                 .max()
                 .unwrap_or(0);
@@ -71,10 +69,11 @@ pub fn print_tasks(
             println!();
 
             // Print tasks
-            for (id, task) in tasks {
+            for task in tasks {
                 let complete = task.complete;
                 let x = settings.icons.get_complete_icon(complete);
                 let name = task.name.clone();
+                let id = task.id.unwrap();
                 let name_id = format!("{} {} ({})", x, name, id);
                 let width = longest_name + 10;
                 print!("{:width$}  ", name_id, width = width);
