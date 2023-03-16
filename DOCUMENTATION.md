@@ -56,3 +56,13 @@ The currently available list of KeyCodes is:
 - `Space`: the space key
 - `Tab`: the tab key
 - `Enter`: the enter key
+- `Backtab`: the backtab key
+- `Null`: the null key
+- `CapsLock`: the caps lock key
+- `ScrollLock`: the scroll lock key
+- `NumLock`: the num lock key
+- `PrintScreen`: the print screen key
+- `Pause`: the pause key
+- `Menu`: the menu key
+- `KeypadBegin`: the keypad begin key
+- Any character -> Example: `a`, `b`, `c`, `1`, `2`, `3`, `!`, `@`, `#`
