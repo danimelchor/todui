@@ -3,7 +3,8 @@ use crate::{configuration::Settings, task::Task, utils};
 
 pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
     match format {
-        Some(Format::Json) => println!("{}", serde_json::to_string_pretty(&task).unwrap()),
+        Some(Format::Json) => println!("{}", serde_json::to_string(&task).unwrap()),
+        Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&task).unwrap()),
         _ => {
             println!("{}\t{}", task.id.unwrap(), task.name);
             println!("Date:\t{}", utils::date_to_display_str(&task.date, settings));
@@ -20,7 +21,8 @@ pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
 
 pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, show_descriptions: bool, show_urls: bool, settings: &Settings) {
     match format {
-        Some(Format::Json) => println!("{}", serde_json::to_string_pretty(&tasks).unwrap()),
+        Some(Format::Json) => println!("{}", serde_json::to_string(&tasks).unwrap()),
+        Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&tasks).unwrap()),
         _ => {
             let longest_name = tasks.iter().map(|t| t.name.len()).max().unwrap_or(0);
             let longest_date = tasks.iter().map(|t| utils::date_to_display_str(&t.date, settings).len()).max().unwrap_or(0);
