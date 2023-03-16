@@ -8,6 +8,7 @@ pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
             println!("{}\t{}", task.id.unwrap(), task.name);
             println!("Date:\t{}", utils::date_to_display_str(&task.date, settings));
             println!("Repeats:\t{:}", task.repeats);
+            println!("Group:\t{:}", task.group.as_deref().unwrap_or_default());
             if let Some(description) = &task.description {
                 println!("Description:\t{}", description);
             }
@@ -24,12 +25,14 @@ pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, show_descriptions:
             let longest_name = tasks.iter().map(|t| t.name.len()).max().unwrap_or(0);
             let longest_date = tasks.iter().map(|t| utils::date_to_display_str(&t.date, settings).len()).max().unwrap_or(0);
             let longest_repeat = tasks.iter().map(|t| t.repeats.to_string().len()).max().unwrap_or(0);
+            let longest_group = tasks.iter().map(|t| t.group.as_deref().unwrap_or_default().len()).max().unwrap_or(0);
 
 
             // Print header
             print!("{:width$}  ", "Name", width = longest_name + 10);
             print!("{:width$}  ", "Date", width = longest_date);
             print!("{:width$}\t", "Repeats", width = longest_repeat);
+            print!("{:width$}\t", "Group", width = longest_group);
 
             if show_descriptions {
                 print!("Description  ");
@@ -55,6 +58,9 @@ pub fn print_tasks(tasks: Vec<&Task>, format: Option<Format>, show_descriptions:
 
                 let repeats = &task.repeats;
                 print!("{:width$}\t", repeats, width = longest_repeat);
+
+                let group = task.group.as_deref().unwrap_or_default();
+                print!("{:width$}\t", group, width = longest_group);
 
                 if show_descriptions {
                     let description = task.description.clone();
