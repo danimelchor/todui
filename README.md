@@ -77,7 +77,7 @@ The default config is the following:
     "input_datetime_hint": "DD-MM-YYYY HH:MM"
   },
   "show_complete": true,
-  "current_group": "School",
+  "current_group": null,
   "icons": {
     "complete": "󰄴",
     "incomplete": "󰝦",
