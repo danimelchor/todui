@@ -77,6 +77,17 @@ impl AllTasksPage {
             .collect()
     }
 
+    pub fn ensure_group_exists(&mut self) {
+        // Check that there are still visible tasks in group
+        let any = self
+            .visible_tasks()
+            .iter()
+            .any(|t| t.group == self.get_current_group());
+        if !any {
+            self.set_group(None);
+        }
+    }
+
     /// Toggles the complete status of the currently selected task
     pub fn toggle_selected(&mut self) {
         if let Some(task_id) = self.current_id {
@@ -86,6 +97,7 @@ impl AllTasksPage {
                 self.move_closest();
             }
         }
+        self.ensure_group_exists();
     }
 
     pub fn next(&mut self) {
@@ -218,6 +230,7 @@ impl AllTasksPage {
             .borrow_mut()
             .settings
             .set_show_complete(self.show_hidden);
+        self.ensure_group_exists();
         if !self.show_hidden {
             self.move_closest();
         }

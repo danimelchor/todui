@@ -10,7 +10,7 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-use super::{Page, InputMode};
+use super::{InputMode, Page};
 
 pub struct TaskPage {
     pub task_form: TaskForm,
@@ -84,6 +84,25 @@ impl TaskPage {
             5 => self.task_form.url.pop(),
             _ => None,
         };
+    }
+
+    pub fn submit(&mut self) -> bool {
+        let mut app = self.app.borrow_mut();
+        let settings = &app.settings;
+        let form_result = self.task_form.submit(settings);
+        match form_result {
+            Ok(new_task) => {
+                if let Some(task_id) = self.editing_task {
+                    app.delete_task(task_id);
+                }
+                app.add_task(new_task.clone());
+                true
+            }
+            Err(e) => {
+                self.error = Some(e.to_string());
+                false
+            }
+        }
     }
 
     fn border_style(&self, idx: usize) -> Style {

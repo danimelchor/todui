@@ -56,8 +56,17 @@ impl DeleteTaskPage {
         self.task_form.pop();
     }
 
-    pub fn submit(&self) -> String {
-        self.task_form.clone()
+    pub fn submit(&self) -> bool {
+        if self.task_form == self.get_task_name() {
+            self.remove_task();
+            true
+        } else {
+            self.error = Some(format!(
+                "The name you entered is not the same as the task name: '{}'",
+                self.get_task_name()
+            ));
+            false
+        }
     }
 
     fn get_keybind_hint(&self) -> Spans {

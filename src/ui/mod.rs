@@ -109,15 +109,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                     }
                     _ if code == keybindings.complete_task => {
                         all_tasks_page.toggle_selected();
-
-                        // Check that there are still visible tasks in group
-                        let any = all_tasks_page
-                            .visible_tasks()
-                            .iter()
-                            .any(|t| t.group == all_tasks_page.get_current_group());
-                        if !any {
-                            all_tasks_page.set_group(None);
-                        }
                     }
                     _ if code == keybindings.toggle_completed_tasks => {
                         all_tasks_page.toggle_hidden()
@@ -158,23 +149,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                                 current_page = UIPage::AllTasks;
                             }
                             _ if code == keybindings.save_changes => {
-                                let form_result = dtp.submit();
-                                let task_name = dtp.get_task_name();
-                                if form_result == task_name {
-                                    dtp.remove_task();
-                                    // check that there are still visible tasks in group
-                                    let any = all_tasks_page
-                                        .visible_tasks()
-                                        .iter()
-                                        .any(|t| t.group == all_tasks_page.get_current_group());
-                                    if !any {
-                                        all_tasks_page.set_group(None);
-                                    }
+                                if dtp.submit() {
+                                    all_tasks_page.ensure_group_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
-                                } else {
-                                    dtp.error =
-                                        Some(format!("Written name doesn't match task's name"))
                                 }
                             }
                             _ => {}
@@ -184,26 +162,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                                 dtp.input_mode = InputMode::Normal;
                             }
                             _ if code == keybindings.save_changes => {
-                                // DUPLICATED - TODO: refactor
-                                let form_result = dtp.submit();
-                                let task_name = dtp.get_task_name();
-                                if form_result == task_name {
-                                    dtp.remove_task();
-                                    // check that there are still visible tasks in group
-                                    let any = all_tasks_page
-                                        .visible_tasks()
-                                        .iter()
-                                        .any(|t| t.group == all_tasks_page.get_current_group());
-                                    if !any {
-                                        all_tasks_page.set_group(None);
-                                    }
+                                if dtp.submit() {
+                                    all_tasks_page.ensure_group_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
-                                } else {
-                                    dtp.error =
-                                        Some(format!("Written name doesn't match task's name"))
                                 }
-                                // END DUPLICATED
                             }
                             KeyCode::Char(c) => dtp.add_char(c),
                             KeyCode::Backspace => dtp.remove_char(),
@@ -223,26 +186,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             current_page = UIPage::AllTasks;
                         }
                         _ if code == keybindings.save_changes => {
-                            let mut app = app.borrow_mut();
-                            let settings = &app.settings;
-                            let form_result = task_page.task_form.submit(settings);
-                            match form_result {
-                                Ok(new_task) => {
-                                    if let Some(task_id) = task_page.editing_task {
-                                        app.delete_task(task_id);
-                                    }
-                                    app.add_task(new_task.clone());
-
-                                    // Drop app since we need it mutable in the next line
-                                    drop(app);
-                                    if new_task.group != all_tasks_page.get_current_group() {
-                                        all_tasks_page.set_group(new_task.group.clone());
-                                    }
-                                    current_page = UIPage::AllTasks;
-                                }
-                                Err(e) => {
-                                    task_page.error = Some(e.to_string());
-                                }
+                            if task_page.submit() {
+                                all_tasks_page.ensure_group_exists();
+                                current_page = UIPage::AllTasks;
                             }
                         }
                         _ => {}
@@ -252,29 +198,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             task_page.input_mode = InputMode::Normal;
                         }
                         _ if code == keybindings.save_changes => {
-                            // DUPLICATED - TODO: refactor
-                            let mut app = task_page.app.borrow_mut();
-                            let settings = &app.settings;
-                            let form_result = task_page.task_form.submit(settings);
-                            match form_result {
-                                Ok(new_task) => {
-                                    if let Some(task_id) = task_page.editing_task {
-                                        app.delete_task(task_id);
-                                    }
-                                    app.add_task(new_task.clone());
-
-                                    // Drop app since we need it mutable in the next line
-                                    drop(app);
-                                    if new_task.group != all_tasks_page.get_current_group() {
-                                        all_tasks_page.set_group(new_task.group.clone());
-                                    }
-                                    current_page = UIPage::AllTasks;
-                                }
-                                Err(e) => {
-                                    task_page.error = Some(e.to_string());
-                                }
+                            if task_page.submit() {
+                                all_tasks_page.ensure_group_exists();
+                                current_page = UIPage::AllTasks;
                             }
-                            // END DUPLICATED
                         }
                         KeyCode::Char(c) => task_page.add_char(c),
                         KeyCode::Backspace => task_page.remove_char(),
@@ -305,10 +232,6 @@ fn render_app<B: Backend>(
         .direction(Direction::Horizontal)
         .constraints(constraints)
         .split(f.size());
-
-    // If no task is selected, display all_tasks page at 100%
-    // If a task is selected, display all_tasks page at 50% and edit_task page at 50%
-    // If edit_task page is selected, display edit_task_page at 100%
 
     match current_page {
         UIPage::NewTask => {
