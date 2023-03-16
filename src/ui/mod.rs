@@ -15,12 +15,12 @@ use tui::{
 };
 
 mod all_tasks_page;
+mod delete_task_page;
 mod task_page;
 
 use all_tasks_page::AllTasksPage;
+use delete_task_page::DeleteTaskPage;
 use task_page::TaskPage;
-
-use task_page::NewTaskInputMode;
 
 #[macro_export]
 macro_rules! key {
@@ -58,6 +58,13 @@ pub enum UIPage {
     AllTasks,
     NewTask,
     EditTask,
+    DeleteTask,
+}
+
+#[derive(Eq, PartialEq)]
+pub enum InputMode {
+    Insert,
+    Normal,
 }
 
 pub trait Page<B: Backend> {
@@ -69,9 +76,18 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
     let mut all_tasks_page = AllTasksPage::new(Rc::clone(&app));
     let mut task_page = TaskPage::new(Rc::clone(&app));
     let mut current_page = UIPage::AllTasks;
+    let mut delete_task_page = None;
 
     loop {
-        terminal.draw(|f| render_app(f, &mut all_tasks_page, &mut task_page, &current_page))?;
+        terminal.draw(|f| {
+            render_app(
+                f,
+                &mut all_tasks_page,
+                &mut task_page,
+                &mut delete_task_page,
+                &current_page,
+            )
+        })?;
         let keybindings = &app.borrow().settings.keybindings.clone();
 
         if let Event::Key(key) = event::read()? {
@@ -107,15 +123,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         all_tasks_page.toggle_hidden()
                     }
                     _ if code == keybindings.delete_task => {
-                        all_tasks_page.delete_selected();
-
-                        // Check that there are still visible tasks in group
-                        let any = all_tasks_page
-                            .visible_tasks()
-                            .iter()
-                            .any(|t| t.group == all_tasks_page.get_current_group());
-                        if !any {
-                            all_tasks_page.set_group(None);
+                        if let Some(task_id) = all_tasks_page.current_id {
+                            delete_task_page = Some(DeleteTaskPage::new(Rc::clone(&app), task_id));
+                            current_page = UIPage::DeleteTask;
                         }
                     }
                     _ if code == keybindings.open_link => all_tasks_page.open_selected_link(),
@@ -136,13 +146,78 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                     }
                     _ => {}
                 },
+                UIPage::DeleteTask => {
+                    let dtp = delete_task_page.as_mut().unwrap();
+                    match dtp.input_mode {
+                        InputMode::Normal => match key.code {
+                            _ if code == keybindings.quit => break,
+                            _ if code == keybindings.enter_insert_mode => {
+                                dtp.input_mode = InputMode::Insert;
+                            }
+                            _ if code == keybindings.go_back => {
+                                current_page = UIPage::AllTasks;
+                            }
+                            _ if code == keybindings.save_changes => {
+                                let form_result = dtp.submit();
+                                let task_name = dtp.get_task_name();
+                                if form_result == task_name {
+                                    dtp.remove_task();
+                                    // check that there are still visible tasks in group
+                                    let any = all_tasks_page
+                                        .visible_tasks()
+                                        .iter()
+                                        .any(|t| t.group == all_tasks_page.get_current_group());
+                                    if !any {
+                                        all_tasks_page.set_group(None);
+                                    }
+                                    current_page = UIPage::AllTasks;
+                                    delete_task_page = None;
+                                } else {
+                                    dtp.error =
+                                        Some(format!("Written name doesn't match task's name"))
+                                }
+                            }
+                            _ => {}
+                        },
+                        InputMode::Insert => match key.code {
+                            _ if code == keybindings.enter_normal_mode => {
+                                dtp.input_mode = InputMode::Normal;
+                            }
+                            _ if code == keybindings.save_changes => {
+                                // DUPLICATED - TODO: refactor
+                                let form_result = dtp.submit();
+                                let task_name = dtp.get_task_name();
+                                if form_result == task_name {
+                                    dtp.remove_task();
+                                    // check that there are still visible tasks in group
+                                    let any = all_tasks_page
+                                        .visible_tasks()
+                                        .iter()
+                                        .any(|t| t.group == all_tasks_page.get_current_group());
+                                    if !any {
+                                        all_tasks_page.set_group(None);
+                                    }
+                                    current_page = UIPage::AllTasks;
+                                    delete_task_page = None;
+                                } else {
+                                    dtp.error =
+                                        Some(format!("Written name doesn't match task's name"))
+                                }
+                                // END DUPLICATED
+                            }
+                            KeyCode::Char(c) => dtp.add_char(c),
+                            KeyCode::Backspace => dtp.remove_char(),
+                            _ => {}
+                        },
+                    }
+                }
                 UIPage::NewTask | UIPage::EditTask => match task_page.input_mode {
-                    NewTaskInputMode::Normal => match key.code {
+                    InputMode::Normal => match key.code {
                         _ if code == keybindings.down => task_page.next_field(),
                         _ if code == keybindings.up => task_page.prev_field(),
                         _ if code == keybindings.quit => break,
                         _ if code == keybindings.enter_insert_mode => {
-                            task_page.input_mode = NewTaskInputMode::Insert;
+                            task_page.input_mode = InputMode::Insert;
                         }
                         _ if code == keybindings.go_back => {
                             current_page = UIPage::AllTasks;
@@ -172,9 +247,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         }
                         _ => {}
                     },
-                    NewTaskInputMode::Insert => match key.code {
+                    InputMode::Insert => match key.code {
                         _ if code == keybindings.enter_normal_mode => {
-                            task_page.input_mode = NewTaskInputMode::Normal;
+                            task_page.input_mode = InputMode::Normal;
                         }
                         _ if code == keybindings.save_changes => {
                             // DUPLICATED - TODO: refactor
@@ -217,6 +292,7 @@ fn render_app<B: Backend>(
     f: &mut Frame<B>,
     all_tasks_page: &mut AllTasksPage,
     task_page: &mut TaskPage,
+    delete_task_page: &mut Option<DeleteTaskPage>,
     current_page: &UIPage,
 ) {
     let constraints = match (current_page, all_tasks_page.current_id) {
@@ -237,6 +313,9 @@ fn render_app<B: Backend>(
     match current_page {
         UIPage::NewTask => {
             task_page.ui(f, chunks[0], true);
+        }
+        UIPage::DeleteTask => {
+            delete_task_page.as_mut().unwrap().ui(f, chunks[0], true);
         }
         _ => match all_tasks_page.current_id {
             Some(_) => {

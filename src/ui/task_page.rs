@@ -1,4 +1,4 @@
-use crate::{app::App, key, task_form::TaskForm, configuration::KeyBindings};
+use crate::{app::App, configuration::KeyBindings, key, task_form::TaskForm};
 use std::{cell::RefCell, rc::Rc};
 use tui::{
     backend::Backend,
@@ -10,17 +10,11 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-use super::Page;
-
-#[derive(PartialEq)]
-pub enum NewTaskInputMode {
-    Normal,
-    Insert,
-}
+use super::{Page, InputMode};
 
 pub struct TaskPage {
     pub task_form: TaskForm,
-    pub input_mode: NewTaskInputMode,
+    pub input_mode: InputMode,
     pub editing_task: Option<usize>,
     pub current_idx: usize,
     pub num_fields: usize,
@@ -32,7 +26,7 @@ impl TaskPage {
     pub fn new(app: Rc<RefCell<App>>) -> TaskPage {
         TaskPage {
             task_form: TaskForm::default(),
-            input_mode: NewTaskInputMode::Normal,
+            input_mode: InputMode::Normal,
             current_idx: 0,
             error: None,
             num_fields: 6,
@@ -47,7 +41,7 @@ impl TaskPage {
 
         TaskPage {
             task_form,
-            input_mode: NewTaskInputMode::Normal,
+            input_mode: InputMode::Normal,
             current_idx: 0,
             error: None,
             num_fields: 6,
@@ -93,7 +87,7 @@ impl TaskPage {
     }
 
     fn border_style(&self, idx: usize) -> Style {
-        if self.current_idx == idx && self.input_mode == NewTaskInputMode::Insert {
+        if self.current_idx == idx && self.input_mode == InputMode::Insert {
             Style::default().fg(self.get_primary_color())
         } else {
             Style::default()
@@ -233,31 +227,21 @@ where
         let curr_text = self.task_form.group.to_string();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(3))
-            .block(Block::default().borders(Borders::ALL).title(
-                "Group",
-            ));
+            .block(Block::default().borders(Borders::ALL).title("Group"));
         f.render_widget(input, chunks[4]);
 
         // Description
         let curr_text = self.task_form.description.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(4))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Description"),
-            );
+            .block(Block::default().borders(Borders::ALL).title("Description"));
         f.render_widget(input, chunks[5]);
-        
+
         // Description
         let curr_text = self.task_form.url.clone();
         let input = Paragraph::new(curr_text.as_ref())
             .style(self.border_style(5))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("URL"),
-            );
+            .block(Block::default().borders(Borders::ALL).title("URL"));
         f.render_widget(input, chunks[6]);
 
         // Place cursor

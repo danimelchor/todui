@@ -88,14 +88,6 @@ impl AllTasksPage {
         }
     }
 
-    /// Deletes the currently selected task
-    pub fn delete_selected(&mut self) {
-        if let Some(task_id) = self.current_id {
-            self.app.borrow_mut().delete_task(task_id);
-            self.move_closest();
-        }
-    }
-
     pub fn next(&mut self) {
         let tasks = self.visible_tasks();
         match self.current_id {
