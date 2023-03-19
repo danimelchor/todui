@@ -133,8 +133,15 @@ pub fn run(app: App, args: Args) -> Result<()> {
     let tasks = filter_by_exact_date(tasks, date, &app.settings)?;
     let tasks = filter_by_group(tasks, group);
 
-    let tasks_vec = tasks.values().collect::<Vec<_>>();
-    cli_utils::print_tasks(tasks_vec, format, show_descriptions, show_urls, &app.settings);
+    let mut tasks_vec = tasks.values().collect::<Vec<_>>();
+    tasks_vec.sort_by(|a, b| a.date.cmp(&b.date));
+    cli_utils::print_tasks(
+        tasks_vec,
+        format,
+        show_descriptions,
+        show_urls,
+        &app.settings,
+    );
 
     Ok(())
 }

@@ -197,7 +197,11 @@ impl AllTasksPage {
             .into_iter()
             .group_by(|t| t.date.date_naive())
             .into_iter()
-            .map(|(_, group)| group.collect())
+            .map(|(_, group)| {
+                group
+                    .sorted_by(|a, b| a.date.cmp(&b.date))
+                    .collect::<Vec<Task>>()
+            })
             .collect()
     }
 
