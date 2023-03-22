@@ -389,7 +389,7 @@ impl SettingsBuilder {
 
         if !path.exists() {
             let mut file = OpenOptions::new().write(true).create(true).open(&path)?;
-            writeln!(file, "[]")?;
+            writeln!(file, "{{}}")?;
         }
 
         Ok(path)
