@@ -49,7 +49,7 @@ $ todui ls --format json --date-filter today
 Use rusts package manger to install todui.
 
 ```
-cargo install --git https://github.com/danimelchor/todui.git
+cargo install todui
 ```
 
 ## Dependencies
