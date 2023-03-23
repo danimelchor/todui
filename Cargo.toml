@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Daniel M. <dmh672@gmail.com>"]
 description = "A CLI and TUI for your todos"
 repository = "https://github.com/danimelchor/todo-rs"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
