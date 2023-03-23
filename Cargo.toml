@@ -1,10 +1,10 @@
 [package]
-name = "todo-rs"
+name = "todui"
 version = "0.1.0"
 edition = "2021"
 authors = ["Daniel M. <dmh672@gmail.com>"]
 description = "A CLI and TUI for your todos"
-repository = "https://github.com/danimelchor/todo-rs"
+repository = "https://github.com/danimelchor/todui"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

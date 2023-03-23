@@ -1,4 +1,4 @@
-# todo-rs
+# todui
 
 ## TUI
 
@@ -17,13 +17,13 @@ This app allows for almost anythig you would need when dealing with todos:
 
 ## How to use?
 
-You can run the TUI by executing `todo-rs` anywhere in your terminal. To use the CLI, you can start by running `todo-rs --help`:
+You can run the TUI by executing `todui` anywhere in your terminal. To use the CLI, you can start by running `todui --help`:
 
 ```
-$ todo-rs --help
+$ todui --help
 A CLI and TUI for your todos
 
-Usage: todo-rs <COMMAND>
+Usage: todui <COMMAND>
 
 Commands:
   ls        Lists all the tasks
@@ -40,29 +40,29 @@ Options:
 For example:
 
 ```
-$ todo-rs ls --format json --date-filter today     
+$ todui ls --format json --date-filter today     
 [{"id":108,"name":"LF112 Homework","date":"2023-03-16T23:59:59-04:00","repeats":{"DaysOfWeek":["Sunday","Tuesday","Thursday"]},"group":"School","description":null,"url":"https://google.com","complete":false},{"id":114,"name":"LF112 Async Thursday","date":"2023-03-16T23:59:59-04:00","repeats":"Weekly","group":"School","description":null,"url":"https://google.com","complete":false},{"id":107,"name":"EN221 Recitation","date":"2023-03-16T23:59:59-04:00","repeats":{"DaysOfWeek":["Tuesday","Thursday"]},"group":"School","description":null,"url":"https://google.com","complete":false}]
 ```
 
 ## Installation
 
-Use rusts package manger to install todo-rs.
+Use rusts package manger to install todui.
 
 ```
-cargo install --git https://github.com/danimelchor/todo-rs.git
+cargo install --git https://github.com/danimelchor/todui.git
 ```
 
 ## Dependencies
 
 This tool doesn't have any mandatory dependencies. However, it looks much better if you install [Nerd Fonts](https://www.nerdfonts.com/) for better icons. If you don't want to do so, you can always use your own icons or change them for plain text, like `[ ]` for an incomplete task and `[x]` for a complete task.
 
-## [Documentation](https://github.com/danimelchor/todo-rs/blob/main/DOCUMENTATION.md)
+## [Documentation](https://github.com/danimelchor/todui/blob/main/DOCUMENTATION.md)
 
 ## Config
 
 The config file can be found in:
-- Unix: `~/.config/todo-rs/settings.json`
-- Windows: `C:\Users\<user>\AppData\Roaming\todo-rs\settings.json`
+- Unix: `~/.config/todui/settings.json`
+- Windows: `C:\Users\<user>\AppData\Roaming\todui\settings.json`
 
 The default config is the following:
 
@@ -108,7 +108,7 @@ The default config is the following:
 }
 ```
 
-For more options, head to [the documentation](https://github.com/danimelchor/todo-rs/blob/main/DOCUMENTATION.md)
+For more options, head to [the documentation](https://github.com/danimelchor/todui/blob/main/DOCUMENTATION.md)
 
 ## Key Bindings
 

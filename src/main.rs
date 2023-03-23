@@ -1,6 +1,6 @@
 use anyhow::Result;
-use todo_rs::configuration::get_configuration;
-use todo_rs::{app::App, cli, ui};
+use todui::configuration::get_configuration;
+use todui::{app::App, cli, ui};
 
 fn main() -> Result<()> {
     // Check args, if none, run ui, else run cli

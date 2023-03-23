@@ -670,7 +670,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "todo-rs"
+name = "todui"
 version = "0.1.0"
 dependencies = [
  "anyhow",

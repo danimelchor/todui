@@ -373,7 +373,7 @@ impl SettingsBuilder {
                     fs::create_dir_all(path)?;
                 }
 
-                let todo_dir = config_dir.join("todo-rs");
+                let todo_dir = config_dir.join("todui");
                 if !todo_dir.exists() {
                     fs::create_dir_all(&todo_dir)?;
                 }
