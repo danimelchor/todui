@@ -119,7 +119,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             current_page = UIPage::DeleteTask;
                         }
                     }
-                    _ if code == keybindings.open_link => all_tasks_page.open_selected_link(),
+                    _ if code == keybindings.open_link => all_tasks_page.open_selected_link()?,
                     _ if code == keybindings.new_task => {
                         current_page = UIPage::NewTask;
                         task_page = TaskPage::new(Rc::clone(&app));
@@ -151,6 +151,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             _ if code == keybindings.save_changes => {
                                 if dtp.submit() {
                                     all_tasks_page.ensure_group_exists();
+                                    all_tasks_page.ensure_task_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
                                 }
@@ -164,6 +165,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             _ if code == keybindings.save_changes => {
                                 if dtp.submit() {
                                     all_tasks_page.ensure_group_exists();
+                                    all_tasks_page.ensure_task_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
                                 }
@@ -188,6 +190,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         _ if code == keybindings.save_changes => {
                             if task_page.submit() {
                                 all_tasks_page.ensure_group_exists();
+                                all_tasks_page.ensure_task_exists();
                                 current_page = UIPage::AllTasks;
                             }
                         }
@@ -200,6 +203,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         _ if code == keybindings.save_changes => {
                             if task_page.submit() {
                                 all_tasks_page.ensure_group_exists();
+                                all_tasks_page.ensure_task_exists();
                                 current_page = UIPage::AllTasks;
                             }
                         }

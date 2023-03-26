@@ -88,6 +88,16 @@ impl AllTasksPage {
         }
     }
 
+    pub fn ensure_task_exists(&mut self) {
+        // Check that the current task still exists
+        if let Some(id) = self.current_id {
+            let any = self.visible_tasks().iter().any(|t| t.id.unwrap() == id);
+            if !any {
+                self.current_id = None;
+            }
+        }
+    }
+
     /// Toggles the complete status of the currently selected task
     pub fn toggle_selected(&mut self) {
         if let Some(task_id) = self.current_id {
