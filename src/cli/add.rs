@@ -52,8 +52,9 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
     };
 
     let task = task_form.submit(&app.settings)?;
-    app.add_task(task.clone());
-    cli_utils::print_task(&task, format, &app.settings);
+    let id = app.add_task(task.clone());
+    let task = app.get_task(id).unwrap();
+    cli_utils::print_task(task, format, &app.settings);
 
     Ok(())
 }
