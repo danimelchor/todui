@@ -2,27 +2,8 @@ use super::formats::Format;
 use crate::{configuration::Settings, task::Task, utils};
 
 pub fn print_task(task: &Task, format: Option<Format>, settings: &Settings) {
-    match format {
-        Some(Format::Json) => println!("{}", serde_json::to_string(&task).unwrap()),
-        Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&task).unwrap()),
-        _ => {
-            println!("{}\t{}", task.id.unwrap(), task.name);
-            println!(
-                "Date:\t{}",
-                utils::date_to_display_str(&task.date, settings)
-            );
-            println!("Repeats:\t{:}", task.repeats);
-            println!("Group:\t{:}", task.group.as_deref().unwrap_or_default());
-            if let Some(description) = &task.description {
-                println!("Description:\t{}", description);
-            }
-            println!(
-                "Complete:\t{}",
-                settings.icons.get_complete_icon(task.complete)
-            );
-            println!("Url:\t{}", task.url.as_deref().unwrap_or(""));
-        }
-    }
+    let tasks = vec![task];
+    print_tasks(tasks, format, true, true, settings);
 }
 
 pub fn print_tasks(
@@ -33,8 +14,8 @@ pub fn print_tasks(
     settings: &Settings,
 ) {
     match format {
-        Some(Format::Json) => println!("{}", serde_json::to_string(&tasks).unwrap()),
-        Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&tasks).unwrap()),
+        Some(Format::Json) => println!("{}", serde_json::to_string(&tasks).expect("Failed to serialize tasks to JSON")),
+        Some(Format::JsonPretty) => println!("{}", serde_json::to_string_pretty(&tasks).expect("Failed to serialize tasks to JSON")),
         _ => {
             let longest_name = tasks.iter().map(|t| t.name.len()).max().unwrap_or(0);
             let longest_date = tasks
