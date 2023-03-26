@@ -86,7 +86,7 @@ pub fn filter_by_exact_date(
             let date = utils::parse_date(date.as_str(), settings)?;
             tasks
                 .into_iter()
-                .filter(|(_, t)| &t.date == &date)
+                .filter(|(_, t)| t.date == date)
                 .collect()
         }
         None => tasks,

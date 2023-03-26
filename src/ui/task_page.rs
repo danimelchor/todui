@@ -95,7 +95,7 @@ impl TaskPage {
                 if let Some(task_id) = self.editing_task {
                     app.delete_task(task_id);
                 }
-                app.add_task(new_task.clone());
+                app.add_task(new_task);
                 true
             }
             Err(e) => {
