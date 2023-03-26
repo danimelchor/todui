@@ -1,4 +1,3 @@
-use anyhow::Result;
 use todui::configuration::get_configuration;
 use todui::{app::App, cli, ui};
 
