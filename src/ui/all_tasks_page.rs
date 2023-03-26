@@ -3,6 +3,7 @@ use crate::repeat::Repeat;
 use crate::task::Task;
 use crate::ui::Page;
 use crate::utils;
+use anyhow::Result;
 use chrono::{DateTime, Local, TimeZone};
 use itertools::Itertools;
 use std::cell::RefCell;
@@ -279,7 +280,7 @@ impl AllTasksPage {
         utils::date_to_display_str(date, &self.app.borrow().settings)
     }
 
-    pub fn open_selected_link(&self) {
+    pub fn open_selected_link(&self) -> Result<()> {
         if let Some(task_id) = self.current_id {
             let url = self
                 .app
@@ -289,8 +290,12 @@ impl AllTasksPage {
                 .url
                 .clone()
                 .unwrap_or_default();
-            open::that(url).unwrap();
+
+            if !url.is_empty() {
+                open::that(url)?;
+            }
         }
+        Ok(())
     }
 
     pub fn get_primary_color(&self) -> Color {
