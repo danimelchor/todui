@@ -15,18 +15,19 @@ pub struct Args {
 
 pub fn run(mut app: App, args: Args) -> Result<()> {
     let Args { id, format } = args;
+    let task = app.get_task(id).cloned();
+    if task.is_none() {
+        println!("Task with id {} not found", id);
+    }
+
     let task_id = app.delete_task(id);
 
     match task_id {
-        Some(id) => {
-
-    let task = app.get_task(id).unwrap();
-    cli_utils::print_task(&task, format, &app.settings);
+        Some(_) => {
+            cli_utils::print_task(&task.unwrap(), format, &app.settings);
         }
-        None => println!("Task with id {} not found", id)
-
+        None => println!("Task with id {} not found", id),
     }
-
 
     Ok(())
 }
