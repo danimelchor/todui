@@ -11,6 +11,8 @@ pub struct Args {
 enum Command {
     /// Reset the configuration to default
     Reset,
+    /// Show the configuration
+    Show,
     /// Set the mode to vi
     SetViMode,
     /// Set the mode to normal
@@ -29,6 +31,9 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
             let mut sb = SettingsBuilder::default();
             sb.save_to_file()?;
             app.settings = sb.build();
+        }
+        Command::Show => {
+            println!("{}", serde_json::to_string_pretty(&app.settings)?);
         }
         Command::SetViMode => {
             app.settings.set_vi_mode();
