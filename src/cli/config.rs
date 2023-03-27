@@ -42,7 +42,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         icons,
     } = args;
 
-    if reset{
+    if reset {
         let mut sb = SettingsBuilder::default();
         sb.save_to_file()?;
         app.settings = sb.build();
@@ -60,7 +60,7 @@ pub fn run(mut app: App, args: Args) -> Result<()> {
         None => {}
     }
 
-    if show{
+    if show {
         println!("{}", serde_json::to_string_pretty(&app.settings)?);
     }
 
