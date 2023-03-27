@@ -6,6 +6,7 @@ mod ls;
 mod add;
 mod delete;
 mod complete;
+mod config;
 mod cli_utils;
 
 // Shared enums and structs
@@ -28,6 +29,8 @@ enum Command {
     Delete(delete::Args),
     /// Marks a task as complete or incomplete
     Complete(complete::Args),
+    /// Sets default configurations
+    Config(config::Args)
 }
 
 pub fn start_cli(app: App) -> Result<()> {
@@ -38,5 +41,6 @@ pub fn start_cli(app: App) -> Result<()> {
         Command::Add(args) => add::run(app, args),
         Command::Delete(args) => delete::run(app, args),
         Command::Complete(args) => complete::run(app, args),
+        Command::Config(args) => config::run(app, args)
     }
 }

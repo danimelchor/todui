@@ -25,14 +25,22 @@ impl Icons {
         // Needs some padding
         format!(" {}", icon)
     }
+
+    pub fn special() -> Self {
+        Icons {
+            complete: "󰄴".to_string(),
+            incomplete: "󰝦".to_string(),
+            repeats: "".to_string(),
+        }
+    }
 }
 
 impl Default for Icons {
     fn default() -> Self {
         Icons {
-            complete: "󰄴".to_string(),
-            incomplete: "󰝦".to_string(),
-            repeats: "".to_string(),
+            complete: "[x]".to_string(),
+            incomplete: "[ ]".to_string(),
+            repeats: "[r]".to_string(),
         }
     }
 }
@@ -248,17 +256,15 @@ impl KeyBindings {
             _ => "Unknown".to_string(),
         }
     }
-}
 
-impl Default for KeyBindings {
-    fn default() -> Self {
+    pub fn get_vi_default() -> Self {
         Self {
             quit: KeyCode::Char('q'),
             down: KeyCode::Char('j'),
             up: KeyCode::Char('k'),
-            complete_task: KeyCode::Char('x'),
+            complete_task: KeyCode::Char(' '),
             toggle_completed_tasks: KeyCode::Char('c'),
-            delete_task: KeyCode::Char('d'),
+            delete_task: KeyCode::Char('x'),
             new_task: KeyCode::Char('n'),
             edit_task: KeyCode::Char('e'),
             save_changes: KeyCode::Enter,
@@ -268,6 +274,28 @@ impl Default for KeyBindings {
             open_link: KeyCode::Enter,
             next_group: KeyCode::Char('l'),
             prev_group: KeyCode::Char('h'),
+        }
+    }
+}
+
+impl Default for KeyBindings {
+    fn default() -> Self {
+        Self {
+            quit: KeyCode::Char('q'),
+            down: KeyCode::Down,
+            up: KeyCode::Up,
+            complete_task: KeyCode::Char(' '),
+            toggle_completed_tasks: KeyCode::Char('h'),
+            delete_task: KeyCode::Delete,
+            new_task: KeyCode::Char('n'),
+            edit_task: KeyCode::Char('e'),
+            save_changes: KeyCode::Enter,
+            enter_insert_mode: KeyCode::Char('i'),
+            enter_normal_mode: KeyCode::Esc,
+            go_back: KeyCode::Esc,
+            open_link: KeyCode::Enter,
+            next_group: KeyCode::Right,
+            prev_group: KeyCode::Left,
         }
     }
 }
@@ -345,6 +373,26 @@ impl Settings {
         self.save_state();
     }
 
+    pub fn set_vi_mode(&mut self) {
+        self.keybindings = KeyBindings::get_vi_default();
+        self.save_state()
+    }
+
+    pub fn set_normal_mode(&mut self) {
+        self.keybindings = KeyBindings::default();
+        self.save_state()
+    }
+
+    pub fn set_special_icons(&mut self) {
+        self.icons = Icons::special();
+        self.save_state()
+    }
+
+    pub fn set_char_icons(&mut self) {
+        self.icons = Icons::default();
+        self.save_state()
+    }
+
     pub fn save_state(&self) {
         let settings_path =
             SettingsBuilder::get_settings_path().expect("Settings file should exist.");
@@ -399,11 +447,17 @@ impl SettingsBuilder {
         let default_path = Self::default_path()?;
         let path = default_path.join("settings.json");
         if !path.exists() {
-            let settings = Self::default();
-            let settings_json = serde_json::to_string_pretty(&settings)?;
-            fs::write(&path, settings_json)?;
+            Self::default().save_to_file()?;
         }
         Ok(path)
+    }
+
+    pub fn save_to_file(&self) -> Result<()> {
+        let default_path = Self::default_path()?;
+        let path = default_path.join("settings.json");
+        let settings_json = serde_json::to_string_pretty(&self)?;
+        fs::write(&path, settings_json)?;
+        Ok(())
     }
 
     pub fn build(&mut self) -> Settings {

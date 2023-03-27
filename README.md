@@ -30,6 +30,7 @@ Commands:
   add       Adds a task to your todos
   delete    Deletes a task from your todos
   complete  Marks a task as complete or incomplete
+  config    Sets default configurations
   help      Print this message or the help of the given subcommand(s)
 
 Options:
@@ -64,7 +65,25 @@ The config file can be found in:
 - Unix: `~/.config/todui/settings.json`
 - Windows: `C:\Users\<user>\AppData\Roaming\todui\settings.json`
 
-The default config is the following:
+There are some pre-built commands you can run to change the configuration. For example, you can change the keybindings to `vi` mode by running:
+
+```
+todui config set-vi-mode
+```
+
+You can also enable special icons by running:
+
+```
+todui config set-special-icons
+```
+
+For all the configuration options, run:
+
+```
+todui config help
+```
+
+Optionally, you can change the default configuration by editing the files directly. The default config is the following:
 
 ```json
 {
@@ -79,9 +98,9 @@ The default config is the following:
   "show_complete": true,
   "current_group": null,
   "icons": {
-    "complete": "󰄴",
-    "incomplete": "󰝦",
-    "repeats": ""
+    "complete": "[x]",
+    "incomplete": "[ ]",
+    "repeats": "[r]"
   },
   "colors": {
     "primary_color": "LightGreen",
@@ -90,20 +109,20 @@ The default config is the following:
   },
   "keybindings": {
     "quit": "q",
-    "down": "j",
-    "up": "k",
-    "complete_task": "x",
-    "toggle_completed_tasks": "c",
-    "delete_task": "d",
+    "down": "Down",
+    "up": "Up",
+    "complete_task": "Space",
+    "toggle_completed_tasks": "h",
+    "delete_task": "Delete",
     "new_task": "n",
     "edit_task": "e",
     "save_changes": "Enter",
     "enter_insert_mode": "i",
     "enter_normal_mode": "Esc",
-    "go_back": "b",
+    "go_back": "Esc",
     "open_link": "Enter",
-    "next_group": "l",
-    "prev_group": "h"
+    "next_group": "Right",
+    "prev_group": "Left"
   }
 }
 ```
@@ -119,16 +138,16 @@ All key bindings can be modified in the config file. The defaults have been chos
 | Key Bindings | Description |
 | -------- | ---------- | 
 | `q` | Quits the application | 
-| `j` | Moves down one task |
-| `k` | Moves up one task |
-| `x` | Marks the task as completed | 
-| `c` | Toggles hiding completed tasks |
+| `Down` | Moves down one task |
+| `Up` | Moves up one task |
+| `Space` | Marks the task as completed | 
+| `h` | Toggles hiding completed tasks |
 | `d` | Deletes the selected task forever|
 | `n` | Opens the new task page |
 | `e` | Focuses the task editing panel |
 | `Enter` | If the task has an associated link, it opens it in your preferred browser |
-| `l` | Select next group |
-| `h` | Select previous group |
+| `Right` | Select next group |
+| `Left` | Select previous group |
 
 **Editing/new task panel**
 
@@ -139,10 +158,10 @@ This panel has two modes (similar to vim). When you are in insert mode, you can 
 | Key Bindings | Description |
 | -------- | ---------- |
 | `q` | Quit the application |
-| `j` | Move down to the next field |
-| `k` | Move up to the previous field |
+| `Down` | Move down to the next field |
+| `Up` | Move up to the previous field |
 | `i` | Enter insert mode |
-| `b` | Go back to the list of tasks panel |
+| `Esc` | Go back to the list of tasks panel |
 | `Enter` | Save changes or add the new task |
 
 *Insert mode*
