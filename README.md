@@ -68,13 +68,13 @@ The config file can be found in:
 There are some pre-built commands you can run to change the configuration. For example, you can change the keybindings to `vi` mode by running:
 
 ```
-todui config set-vi-mode
+todui config --mode vi
 ```
 
 You can also enable special icons by running:
 
 ```
-todui config set-special-icons
+todui config --icons special
 ```
 
 For all the configuration options, run:
@@ -84,6 +84,10 @@ todui config help
 ```
 
 Optionally, you can change the default configuration by editing the files directly. The default config is the following:
+
+```
+todui config --show
+```
 
 ```json
 {
