@@ -4,49 +4,65 @@ use clap::{Parser, ValueEnum};
 
 #[derive(Parser)]
 pub struct Args {
-    command: Command,
+    /// Reset the configuration to default
+    #[clap(long)]
+    reset: bool,
+    /// Show the configuration
+    #[clap(long)]
+    show: bool,
+    /// Set the keybindings mode
+    #[clap(long)]
+    mode: Option<Mode>,
+    /// Set the icons
+    #[clap(long)]
+    icons: Option<Icons>,
 }
 
 #[derive(Parser, Clone, Copy, ValueEnum)]
-enum Command {
-    /// Reset the configuration to default
-    Reset,
-    /// Show the configuration
-    Show,
-    /// Set the mode to vi
-    SetViMode,
-    /// Set the mode to normal
-    SetNormalMode,
+enum Icons {
     /// Set the icons to special characters
-    SetSpecialIcons,
+    Special,
     /// Set the icons to char
-    SetCharIcons,
+    Chars,
+}
+
+#[derive(Parser, Clone, Copy, ValueEnum)]
+enum Mode {
+    /// Set the mode to vi
+    Vi,
+    /// Set the mode to normal
+    Normal,
 }
 
 pub fn run(mut app: App, args: Args) -> Result<()> {
-    let Args { command } = args;
+    let Args {
+        reset,
+        show,
+        mode,
+        icons,
+    } = args;
 
-    match command {
-        Command::Reset => {
-            let mut sb = SettingsBuilder::default();
-            sb.save_to_file()?;
-            app.settings = sb.build();
-        }
-        Command::Show => {
-            println!("{}", serde_json::to_string_pretty(&app.settings)?);
-        }
-        Command::SetViMode => {
-            app.settings.set_vi_mode();
-        }
-        Command::SetNormalMode => {
-            app.settings.set_normal_mode();
-        }
-        Command::SetSpecialIcons => {
-            app.settings.set_special_icons();
-        }
-        Command::SetCharIcons => {
-            app.settings.set_char_icons();
-        }
+    if reset{
+        let mut sb = SettingsBuilder::default();
+        sb.save_to_file()?;
+        app.settings = sb.build();
     }
+
+    match mode {
+        Some(Mode::Vi) => app.settings.set_vi_mode(),
+        Some(Mode::Normal) => app.settings.set_normal_mode(),
+        None => {}
+    }
+
+    match icons {
+        Some(Icons::Special) => app.settings.set_special_icons(),
+        Some(Icons::Chars) => app.settings.set_char_icons(),
+        None => {}
+    }
+
+    if show{
+        println!("{}", serde_json::to_string_pretty(&app.settings)?);
+    }
+
     Ok(())
 }
