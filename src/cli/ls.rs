@@ -134,7 +134,11 @@ pub fn run(app: App, args: Args) -> Result<()> {
     let tasks = filter_by_group(tasks, group);
 
     let mut tasks_vec = tasks.values().collect::<Vec<_>>();
-    tasks_vec.sort_by(|a, b| a.date.cmp(&b.date));
+
+    tasks_vec.sort_by(|a, b| {
+        a.date.cmp(&b.date).then_with(|| a.name.cmp(&b.name))
+    });
+
     cli_utils::print_tasks(
         tasks_vec,
         format,
