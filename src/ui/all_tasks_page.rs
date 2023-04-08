@@ -253,11 +253,15 @@ impl AllTasksPage {
 
     pub fn get_groups(&self) -> Vec<String> {
         let mut groups = vec!["All Tasks".to_string()];
-        let mut other_groups = self
-            .app
-            .borrow()
-            .tasks
-            .values()
+        let tasks: Vec<Task> = self.app.borrow().tasks.values().cloned().collect();
+
+        let tasks: Vec<Task> = if !self.show_hidden {
+            tasks.into_iter().filter(|t| !t.complete).collect()
+        } else {
+            tasks
+        };
+        let mut other_groups =  tasks
+            .iter()
             .filter_map(|t| t.group.clone())
             .unique()
             .collect::<Vec<String>>();
