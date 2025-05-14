@@ -9,10 +9,9 @@ use itertools::Itertools;
 use std::cell::RefCell;
 use std::rc::Rc;
 use tui::layout::{Direction, Rect};
-use tui::text::{Span, Spans};
+use tui::text::{Line, Span};
 use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table, Tabs};
 use tui::{
-    backend::Backend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
     Frame,
@@ -260,7 +259,7 @@ impl AllTasksPage {
         } else {
             tasks
         };
-        let mut other_groups =  tasks
+        let mut other_groups = tasks
             .iter()
             .filter_map(|t| t.group.clone())
             .unique()
@@ -315,11 +314,8 @@ impl AllTasksPage {
     }
 }
 
-impl<B> Page<B> for AllTasksPage
-where
-    B: Backend,
-{
-    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
+impl Page for AllTasksPage {
+    fn ui(&self, f: &mut Frame, area: Rect, focused: bool) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
@@ -327,9 +323,9 @@ where
 
         // Render tabs
         let groups = self.get_groups();
-        let titles = groups
+        let titles: Vec<_> = groups
             .iter()
-            .map(|t| Spans::from(Span::styled(t, Style::default().fg(Color::White))))
+            .map(|t| Line::from(Span::styled(t, Style::default().fg(Color::White))))
             .collect();
         let current_group_idx = match &self.current_group {
             None => 0,
@@ -387,7 +383,7 @@ where
                     _ => Style::default().fg(Color::White),
                 };
                 let title_style = title_style.add_modifier(Modifier::BOLD);
-                let title_cell = Spans::from(Span::styled(title, title_style));
+                let title_cell = Line::from(Span::styled(title, title_style));
 
                 // Create row
                 let cell = Cell::from(title_cell);
@@ -414,15 +410,13 @@ where
             true => BorderType::Thick,
             false => BorderType::Plain,
         };
-        let list = Table::new(rows)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Todos")
-                    .border_style(border_style)
-                    .border_type(border_type),
-            )
-            .widths(&[Constraint::Percentage(100)]);
+        let list = Table::new(rows, &[Constraint::Percentage(100)]).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Todos")
+                .border_style(border_style)
+                .border_type(border_type),
+        );
         f.render_widget(list, chunks[0]);
     }
 }

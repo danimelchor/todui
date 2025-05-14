@@ -1,10 +1,9 @@
 use crate::{app::App, configuration::KeyBindings, key, task_form::TaskForm};
 use std::{cell::RefCell, rc::Rc};
 use tui::{
-    backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
-    text::{Span, Spans},
+    text::{Line, Span, Text},
     widgets::{Block, BorderType, Borders, Paragraph, Wrap},
     Frame,
 };
@@ -131,7 +130,7 @@ impl TaskPage {
         format!("{} or {}", date_hint, datetime_hint)
     }
 
-    fn get_keybind_hint(&self) -> Spans {
+    fn get_keybind_hint(&self) -> Line {
         let color = self.get_secondary_color();
         let kb = &self.app.borrow().settings.keybindings;
         let i = key!(kb.enter_insert_mode, color);
@@ -142,7 +141,7 @@ impl TaskPage {
         let esc = key!(kb.enter_normal_mode, color);
         let b = key!(kb.go_back, color);
 
-        Spans::from(vec![
+        Line::from(vec![
             Span::raw("Press "),
             i,
             Span::raw(" to enter insert mode, "),
@@ -170,11 +169,8 @@ impl TaskPage {
     }
 }
 
-impl<B> Page<B> for TaskPage
-where
-    B: Backend,
-{
-    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
+impl Page for TaskPage {
+    fn ui(&self, f: &mut Frame, area: Rect, focused: bool) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(2)
@@ -216,49 +212,48 @@ where
         f.render_widget(keybinds, chunks[0]);
 
         // Name
-        let curr_text = self.task_form.name.clone();
-        let input = Paragraph::new(curr_text.as_ref())
+        let curr_text = Text::from(self.task_form.name.clone());
+        let input = Paragraph::new(curr_text)
             .style(self.border_style(0))
             .block(Block::default().borders(Borders::ALL).title("Name (*)"));
         f.render_widget(input, chunks[1]);
 
         // Date
-        let curr_text = self.task_form.date.clone();
-        let input = Paragraph::new(curr_text.as_ref())
-            .style(self.border_style(1))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(format!("Date ({})", self.get_date_hint())),
-            );
+        let curr_text = Text::from(self.task_form.date.clone());
+        let input = Paragraph::new(curr_text).style(self.border_style(1)).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(format!("Date ({})", self.get_date_hint())),
+        );
         f.render_widget(input, chunks[2]);
 
         // Repeats
-        let curr_text = self.task_form.repeats.to_string();
-        let input = Paragraph::new(curr_text.as_ref())
-            .style(self.border_style(2))
-            .block(Block::default().borders(Borders::ALL).title(
+        let curr_text = Text::from(self.task_form.repeats.to_string());
+        let input =
+            Paragraph::new(curr_text)
+                .style(self.border_style(2))
+                .block(Block::default().borders(Borders::ALL).title(
                 "Repeats (Never | Daily | Weekly | Monthly | Yearly | Mon,Tue,Wed,Thu,Fri,Sat,Sun)",
             ));
         f.render_widget(input, chunks[3]);
 
         // Group
-        let curr_text = self.task_form.group.to_string();
-        let input = Paragraph::new(curr_text.as_ref())
+        let curr_text = Text::from(self.task_form.group.clone());
+        let input = Paragraph::new(curr_text)
             .style(self.border_style(3))
             .block(Block::default().borders(Borders::ALL).title("Group"));
         f.render_widget(input, chunks[4]);
 
         // Description
-        let curr_text = self.task_form.description.clone();
-        let input = Paragraph::new(curr_text.as_ref())
+        let curr_text = Text::from(self.task_form.description.clone());
+        let input = Paragraph::new(curr_text)
             .style(self.border_style(4))
             .block(Block::default().borders(Borders::ALL).title("Description"));
         f.render_widget(input, chunks[5]);
 
         // Description
-        let curr_text = self.task_form.url.clone();
-        let input = Paragraph::new(curr_text.as_ref())
+        let curr_text = Text::from(self.task_form.url.clone());
+        let input = Paragraph::new(curr_text)
             .style(self.border_style(5))
             .block(Block::default().borders(Borders::ALL).title("URL"));
         f.render_widget(input, chunks[6]);
@@ -266,37 +261,37 @@ where
         // Place cursor
         if focused {
             match self.current_idx {
-                0 => f.set_cursor(
+                0 => f.set_cursor_position((
                     chunks[1].x + self.task_form.name.width() as u16 + 1,
                     chunks[1].y + 1,
-                ),
-                1 => f.set_cursor(
+                )),
+                1 => f.set_cursor_position((
                     chunks[2].x + self.task_form.date.width() as u16 + 1,
                     chunks[2].y + 1,
-                ),
-                2 => f.set_cursor(
+                )),
+                2 => f.set_cursor_position((
                     chunks[3].x + self.task_form.repeats.width() as u16 + 1,
                     chunks[3].y + 1,
-                ),
-                3 => f.set_cursor(
+                )),
+                3 => f.set_cursor_position((
                     chunks[4].x + self.task_form.group.width() as u16 + 1,
                     chunks[4].y + 1,
-                ),
-                4 => f.set_cursor(
+                )),
+                4 => f.set_cursor_position((
                     chunks[5].x + self.task_form.description.width() as u16 + 1,
                     chunks[5].y + 1,
-                ),
-                5 => f.set_cursor(
+                )),
+                5 => f.set_cursor_position((
                     chunks[6].x + self.task_form.url.width() as u16 + 1,
                     chunks[6].y + 1,
-                ),
+                )),
                 _ => {}
             }
         }
 
         // Error message
         if let Some(error) = &self.error {
-            let error = Paragraph::new(error.as_ref())
+            let error = Paragraph::new(Text::from(error.to_owned()))
                 .style(Style::default().fg(Color::Red))
                 .block(Block::default().borders(Borders::ALL).title("Error"));
             f.render_widget(error, chunks[7]);
