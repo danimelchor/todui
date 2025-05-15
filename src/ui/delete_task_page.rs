@@ -5,10 +5,9 @@ use crate::{
 };
 use std::{cell::RefCell, rc::Rc};
 use tui::{
-    backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
-    text::{Span, Spans},
+    text::{Line, Span, Text},
     widgets::{Block, BorderType, Borders, Paragraph, Wrap},
     Frame,
 };
@@ -69,7 +68,7 @@ impl DeleteTaskPage {
         }
     }
 
-    fn get_keybind_hint(&self) -> Spans {
+    fn get_keybind_hint(&self) -> Line {
         let color = self.get_secondary_color();
         let kb = &self.app.borrow().settings.keybindings;
         let i = key!(kb.enter_insert_mode, color);
@@ -78,7 +77,7 @@ impl DeleteTaskPage {
         let esc = key!(kb.enter_normal_mode, color);
         let b = key!(kb.go_back, color);
 
-        Spans::from(vec![
+        Line::from(vec![
             Span::raw("Press "),
             i,
             Span::raw(" to enter insert mode, "),
@@ -102,11 +101,8 @@ impl DeleteTaskPage {
     }
 }
 
-impl<B> Page<B> for DeleteTaskPage
-where
-    B: Backend,
-{
-    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool) {
+impl Page for DeleteTaskPage {
+    fn ui(&self, f: &mut Frame, area: Rect, focused: bool) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(2)
@@ -144,7 +140,7 @@ where
         f.render_widget(keybinds, chunks[0]);
 
         // Description
-        let description = Paragraph::new(Spans::from(format!(
+        let description = Paragraph::new(Line::from(format!(
             "To delete this task, please write down the exact name: '{}'",
             self.get_task_name()
         )))
@@ -153,27 +149,27 @@ where
         f.render_widget(description, chunks[1]);
 
         // Name input
-        let curr_text = self.task_form.clone();
+        let curr_text = Text::from(self.task_form.clone());
         let style = match self.input_mode {
             InputMode::Normal => Style::default(),
             InputMode::Insert => Style::default().fg(self.get_primary_color()),
         };
-        let input = Paragraph::new(curr_text.as_ref())
+        let input = Paragraph::new(curr_text)
             .style(style)
             .block(Block::default().borders(Borders::ALL));
         f.render_widget(input, chunks[2]);
 
         // Place cursor
         if focused {
-            f.set_cursor(
+            f.set_cursor_position((
                 chunks[2].x + self.task_form.width() as u16 + 1,
                 chunks[2].y + 1,
-            );
+            ));
         }
 
         // Error message
         if let Some(error) = &self.error {
-            let error = Paragraph::new(error.as_ref())
+            let error = Paragraph::new(Text::from(error.to_owned()))
                 .style(Style::default().fg(Color::Red))
                 .block(Block::default().borders(Borders::ALL).title("Error"));
             f.render_widget(error, chunks[3]);

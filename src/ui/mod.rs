@@ -67,8 +67,8 @@ pub enum InputMode {
     Normal,
 }
 
-pub trait Page<B: Backend> {
-    fn ui(&self, f: &mut Frame<B>, area: Rect, focused: bool);
+pub trait Page {
+    fn ui(&self, f: &mut Frame, area: Rect, focused: bool);
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
@@ -219,8 +219,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
     Ok(())
 }
 
-fn render_app<B: Backend>(
-    f: &mut Frame<B>,
+fn render_app(
+    f: &mut Frame,
     all_tasks_page: &mut AllTasksPage,
     task_page: &mut TaskPage,
     delete_task_page: &mut Option<DeleteTaskPage>,
@@ -235,7 +235,7 @@ fn render_app<B: Backend>(
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(constraints)
-        .split(f.size());
+        .split(f.area());
 
     match current_page {
         UIPage::NewTask => {
