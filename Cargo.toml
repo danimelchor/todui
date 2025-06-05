@@ -19,3 +19,4 @@ unicode-width = "0.1.10"
 clap = { version = "4.1.8", features = ["derive"] }
 open = "4.0.0"
 dirs = "4.0.0"
+ctrlc = { version = "3.4.7", features = ["termination"] }
