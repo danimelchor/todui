@@ -1,13 +1,14 @@
 use crate::app::App;
 use anyhow::Result;
 use crossterm::{
+    cursor::SetCursorStyle,
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::cell::RefCell;
 use std::io::stdout;
 use std::rc::Rc;
+use std::{cell::RefCell, io::Write};
 use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout, Rect},
@@ -39,6 +40,11 @@ pub fn start_ui(app: App) -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
+    ctrlc::set_handler(|| {
+        execute!(std::io::stdout(), SetCursorStyle::DefaultUserShape)
+            .expect("Failed to reset cursor style");
+    })?;
+
     run_app(&mut terminal, app)?;
 
     // restore terminal
@@ -46,7 +52,8 @@ pub fn start_ui(app: App) -> Result<()> {
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
-        DisableMouseCapture
+        DisableMouseCapture,
+        SetCursorStyle::DefaultUserShape,
     )?;
     terminal.show_cursor()?;
 
@@ -71,7 +78,7 @@ pub trait Page {
     fn ui(&self, f: &mut Frame, area: Rect, focused: bool);
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
+fn run_app<B: Backend + Write>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
     let app = Rc::new(RefCell::new(app));
     let mut all_tasks_page = AllTasksPage::new(Rc::clone(&app));
     let mut task_page = TaskPage::new(Rc::clone(&app));
@@ -144,9 +151,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                             _ if code == keybindings.quit => break,
                             _ if code == keybindings.enter_insert_mode => {
                                 dtp.input_mode = InputMode::Insert;
+                                set_cursor(terminal, SetCursorStyle::SteadyBar)?;
                             }
                             _ if code == keybindings.go_back => {
                                 current_page = UIPage::AllTasks;
+                                set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                             }
                             _ if code == keybindings.save_changes => {
                                 if dtp.submit() {
@@ -154,6 +163,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                                     all_tasks_page.ensure_task_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
+                                    set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                                 }
                             }
                             _ => {}
@@ -161,6 +171,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         InputMode::Insert => match key.code {
                             _ if code == keybindings.enter_normal_mode => {
                                 dtp.input_mode = InputMode::Normal;
+                                set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                             }
                             _ if code == keybindings.save_changes => {
                                 if dtp.submit() {
@@ -168,6 +179,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                                     all_tasks_page.ensure_task_exists();
                                     current_page = UIPage::AllTasks;
                                     delete_task_page = None;
+                                    set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                                 }
                             }
                             KeyCode::Char(c) => dtp.add_char(c),
@@ -183,15 +195,18 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                         _ if code == keybindings.quit => break,
                         _ if code == keybindings.enter_insert_mode => {
                             task_page.input_mode = InputMode::Insert;
+                            set_cursor(terminal, SetCursorStyle::SteadyBar)?;
                         }
                         _ if code == keybindings.go_back => {
                             current_page = UIPage::AllTasks;
+                            set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                         }
                         _ if code == keybindings.save_changes => {
                             if task_page.submit() {
                                 all_tasks_page.ensure_group_exists();
                                 all_tasks_page.ensure_task_exists();
                                 current_page = UIPage::AllTasks;
+                                set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                             }
                         }
                         _ => {}
@@ -199,12 +214,14 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<()> {
                     InputMode::Insert => match key.code {
                         _ if code == keybindings.enter_normal_mode => {
                             task_page.input_mode = InputMode::Normal;
+                            set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                         }
                         _ if code == keybindings.save_changes => {
                             if task_page.submit() {
                                 all_tasks_page.ensure_group_exists();
                                 all_tasks_page.ensure_task_exists();
                                 current_page = UIPage::AllTasks;
+                                set_cursor(terminal, SetCursorStyle::SteadyBlock)?;
                             }
                         }
                         KeyCode::Char(c) => task_page.add_char(c),
@@ -254,4 +271,13 @@ fn render_app(
             }
         },
     }
+}
+
+fn set_cursor<B: Backend + Write>(
+    terminal: &mut Terminal<B>,
+    cursor_style: SetCursorStyle,
+) -> Result<()> {
+    crossterm::execute!(terminal.backend_mut(), cursor_style)?;
+
+    Ok(())
 }
