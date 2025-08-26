@@ -56,13 +56,12 @@ impl DeleteTaskPage {
     }
 
     pub fn submit(&mut self) -> bool {
-        if self.task_form == self.get_task_name() {
+        if self.task_form == "delete it" {
             self.remove_task();
             true
         } else {
             self.error = Some(format!(
-                "The name you entered is not the same as the task name: '{}'",
-                self.get_task_name()
+                "The name you entered is not 'delete it'"
             ));
             false
         }
@@ -141,8 +140,7 @@ impl Page for DeleteTaskPage {
 
         // Description
         let description = Paragraph::new(Line::from(format!(
-            "To delete this task, please write down the exact name: '{}'",
-            self.get_task_name()
+            "To delete this task, please write 'delete it'"
         )))
         .alignment(Alignment::Center)
         .wrap(Wrap { trim: true });
